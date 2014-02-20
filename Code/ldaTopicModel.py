@@ -1,4 +1,6 @@
-class Transformer:
+import numpy as np
+
+class ldaTopicModel:
     def __init__(self,**kwrds):
         self.set_params(**kwrds)
 
