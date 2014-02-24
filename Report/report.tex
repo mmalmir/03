@@ -17,7 +17,7 @@
 \usepackage{multirow}
 \usepackage{listings}
 \usepackage{float}
-
+\usepackage{setspace}
 \definecolor{darkblue}{rgb}{0.0,0.0,0.5}
 \newtheorem{Dfn}{Definition}
 \hypersetup{colorlinks,breaklinks,
@@ -27,462 +27,92 @@
 \newcommand{\argmin}{\arg\!\max}
 \begin{document}
 
-\title{ Conditional Random Fields for Punctuation Prediction\\  Learning Algorithms, Project 2}
+\title{Parameter estimation for text analysis\\  Learning Algorithms, Project 3}
 \author{Mohsen Malmir, Erfan Sayyari}
 \maketitle
 \section{Abstract}
-We describe the details of implementing  a Conditional Random Fields model for prediction punctuation tags for English language text . Two different techniques are used for training the model: Gibbs sampling and Collin's Perceptron. We propose a set of feature functions that are based on part of speech tags of the input sentences. We show that using with feature functions, training of the model is very fast and memory efficient (The training is complete in a couple of minutes). The proposed model can predict the individual punctuation tags with 90\% accuracy using Collin's Perceptron training rule. We also look closely into the problem of over fitting, which occurs because of the imbalance of target tag frequency in the training data. We see how Contrastive Divergence improves in prediction of less frequent tags using a bounded weight learning rule. Finally, we propose  a model based on averaging of multiple models, each trained to predict a specific tag,  that can alleviate the over-fitting problem. 
+
 
 \section{Introduction}
-In this paper, we provide the results and details of implementation of a Conditional Random Field (CRF) model for predicting English language text punctuations. CRFs are a variant of undirected graphical models that are well suited for predicting structured labels. We train our model by maximizing log conditional likelihood (LCL) of the training data. We see that the model can predict individual tags by 90\% accuracy. However, there is a chance of over fitting to some prevalent tags in the training set. Using two different techniques that will be described later in this paper, we can overcome the over-fitting problem to some degrees.\\
-We choose two techniques to train the proposed model: Collin's Perceptron and Contrastive Divergence. Both of these methods are approximations to the general gradient following method. We use these two methods because of their two characteristics: simplicity and elegance. Collin's Perceptron and Contrastive Divergence provide simplified updating rules for the parameters, which are less expensive compared to the general gradient following for maximizing LCL. Despite simplicity, both methods have very clear and intuitive explanation behind them: they maximize the LCL of the data by decreasing the model's probability of spurious target tags.\\
-One of the most important parts of the CRF model for predicting text punctuation is the choice of feature functions as it effects both the performance and accuracy of the model. The feature functions we develop here use Part-of-Speech (POS) tags of the input sentence. The main characteristic for the proposed feature functions is their efficiency in computation time: training of our method only takes a few minutes on a single core machine. We show that using these feature functions, the model can predict the punctuation tags with 90\% accuracy.\\ 
-For the given training and test data, danger of over-fitting is high because of the imbalanced distribution of punctuation tags. We deal with this problem with two different techniques. We show how bounding the weight parameters can improve the generalization for the Contrastive Divergence. Then we propose a model that is based on averaging the weights of different models, each trained to predict a specific target tag. We show this last technique is more effective and achieves the highest accuracy for predicting the less frequent punctuation tags.
+
 
 
 \section{Design and Analysis of Algorithm}
-\subsection{The general log-linear model}
-Generally log-linear model is an extension of logistic regression. Conditional random Fields (CRFs) are a special case of log-linear models as well. Consider $x$ as an example that could be drawn from set $X$, and if we consider $y$ as a label which could be chosen from set of labels $Y$. In log-linear model we write the conditional probability $p(y|x;w)$ as:
-\begin{equation}
-p(y|x;w)=\frac{exp\sum_{j=1}^Jw_jF_j(x,y)}{Z(x,w)}.
-\end{equation}
 
-where $Z(x,y)$ is a normalization factor that is equal to:
-\begin{equation}
-Z(x,w)=\sum_{y' \in Y}exp\sum{j=1}{J}w_jF_j(x,y').
-\end{equation}
-In above equations $F_j(x,y)$ is called a feature function. If $w_j>0$ then observing a positive value for a feature function makes label y more probable to be label of x (other things fixed). Conversely, if $w_j<0$, observing a positive value for a feature function makes label $y$ less probable to be the label of x.
+\subsection{The bag-of-words representation}
+Vocabulary is the collection of words that are used in documents at least once. In text mining, many eliminated from the vocabulary "stop" words. These are some common words in most documents and they are not related to a particular subject or topic. From linguistic point of view, these words are called "function words" as well. They include pronouns (you, he, it) connectives (and, because, however), prepositions (to, of, before), auxiliaries (have, been, can), and generic nouns (amount, part, nothing). 
 
-If we have weights $w_j$ and feature functions $F_j(x,y)$s, in order to assign a label to a test example x, we have to solve an argmax problem. Mathematically we could write it as:
-\begin{equation}
-\hat y = arg\max_y p(y|x;w)=arg\max_y\sum_{j=1}^Jw_jF_j(x,y).
-\end{equation}
-Above formula is called softmax function which is  a differentiable and convex function.
-
-\subsection{Feature functions}
-In general, a feature function can be a mapping from data space $X$ and label space Y to real-valued numbers, $F_j: X\times Y \rightarrow \mathbb{R}$.
-
-Usually, we define classes of feature functions using a template. We define $F_j(x,y)$ as the sum of some local feature functions, $f_j$. We could write:
-\begin{equation}
-F_j(x,y)=\sum_{i=1}^{n+1}f_j(y_{i-1}, y_i, x_{i-1}, x_i).
-\end{equation} 
-where in our project $x_i$ and $x_{i-1}$ are words of the sentence and $f_j$ is an indicator function. Instead of using each word in above equation we use Part-of-Speech (POS) tag of each word, so we could rewrite above equation as:
-\begin{equation}
-F_j(x,y)=\sum_{i=1}^{n+1}f_j(y_{i-1}, y_i, POS(x_{i-1}),POS( x_i)).
-\end{equation} 
-POS tags are corresponding part of speech of each word in a sentence, for example adjective, noun, verb and etc. In the next section we investigate them more. 
-
-Above model has some problems, for example in practice many effective features depends on different positions of the sentence not consecutive ones. This model just considers POS tags of just two words that are consecutive. In addition, in above equation we do not consider different length of different sentence. However, as we see, these feature functions are effective for predicting punctuation tags.
-
-\subsubsection{Part of Speech tagging}
-In linguistics, part-of-speech tagging is the process of assigning a part of speech to a word. There are many packages for python which do POS tagging. In this project we use \emph{topia.termextract 1.1.0} ~\cite{topia} to do this preprocessing task. This package assigns different tags to different words of the sentence. The list of tags and their definition are represented in Table ~\ref{table:1}. Topia considers the words that it cannot assign a POS tag as a new tag. In our project there are some of these unknown tags, for example \$, " ", etc. 
-
-In order to extract POS tags, first we have to tokenize the sentence. Due to unknown tags and words in the dataset, we tokenize the sentence based on space. Then we use \emph{topia.termextract } to assign tags to words. This step does not take much time since this package is fairly fast. 
-
-The number of tags in Table ~\ref{table:1}, are large, which makes our algorithm slow. In order to reduce their number, we use closed class words. We have to merge some of these POS tags without introducing any difficulty in to the problem. The set of simplified POS tags are represented in Table ~\ref{table:2}. We merge different types of nouns, adjectives, words start with wh (other than adverbs form because they are important for question mark), verbs, and pronouns into one group. Furthermore, we merge other unknown labels as Noise as well. In addition we merge determiner and predeterminer into adjectives too. (they related to nouns so we merge them into adjectives).
-\begin{table}
-\vspace{-2cm}
-\center
-\begin{tabular}{|c|c|c|}
-\hline
- & Word tag & Meaning \\ \hline
-1 & CC & Coordinating conjunction\\ \hline
-2 & CD & Cardinal number \\ \hline
-3 & DT & Determiner\\ \hline
-4 & EX & Existential there\\ \hline
-5 & FW & Foreign word \\ \hline
-6 & IN & Preposition or subordinating conjunction \\ \hline
-7 & JJ & Adjective \\ \hline
-8 & JJR & Adjective, comparative \\ \hline
-9 & JJS & Adjective, superlative \\ \hline
-10 & LS & List item marker \\ \hline
-11 & MD & Modal \\ \hline
-12 & NN & Noun, singular or mass \\ \hline
-13 & NNS & Noun, plural \\ \hline
-14 & NNP & Proper noun, singular \\ \hline
-15 & NNPS & Proper noun, plural \\ \hline
-16 & PDT & Predeterminer \\ \hline
-17 & POS & Possessive ending \\ \hline
-18 & PRP & Personal pronoun\\ \hline
-19 & PRP\$ & Possessive pronoun \\ \hline
-20 & RB & Adverb \\ \hline
-21 & RBR & Adverb, comparative \\ \hline
-22 & RBS & Adverb, superlative \\ \hline
-23 & RP & Particle \\ \hline
-24 & SYM & Symbol \\ \hline
-25 & TO & to \\ \hline
-26 & UH & Interjection \\ \hline
-27 & VB & Verb, base form \\ \hline
-28 & VBD & Verb, past tense \\ \hline
-30 & VBG & Verb, gerund or present participle \\ \hline
-31 & VBN & Verb, past participle \\ \hline
-32 & VBP & Verb, non-3rd person singular present \\ \hline
-33 & VBZ & Verb, 3rd person singular present \\ \hline
-34 & WDT & Wh-determiner \\ \hline
-35 & WP & Wh-pronoun \\ \hline
-36 & WP\$ & Possessive wh-pronoun \\ \hline
-37 & WRB & Wh-adverb \\ \hline
-\end{tabular}
-\caption{topia.termextract 1.1.0 POS tags and their meanings}
-\label{table:1}
-\end{table}
-
-\begin{table}
-\vspace{-2cm}
-\center
-\begin{tabular}{|c|c|c|c|}
-\hline
- & Simplified Word tag & Members & Meaning  \\ \hline
-1 & ADJ & JJ, JJS, JJR, PDT, DT& Adjective\\ \hline
-2 & PRP & PRP, PRP\$ & Pronoun  \\ \hline
-3 & NN & NN, NNS, NNP, NNPS, FW & Nouns\\ \hline
-4 & VB & VBD, VBG, VBP, VBN, VBZ, VB & Verbs\\ \hline
-5 & WH & WP, WP\$, WDT & Wh-words \\ \hline
-6 & RB & RB, RBR, RBS & Adverb \\ \hline
-7 & Noise & \#, ' ', \$, (, ) &Unknown \\ \hline
-8 & POS & POS& Possessive ending \\ \hline
-9 & WRB & WRB& Wh-adverb \\ \hline
-10 & CC & CC& Coordinating conjunction \\ \hline
-11 & CD & CD&Cardinal number \\ \hline
-12 & IN & IN&Preposition or subordinating conjunction\\ \hline
-13 & EX & EX&Existential there \\ \hline
-14 & MD & MD&Modal \\ \hline
-15 & SYM & SYM&Symbol  \\ \hline
-16 & UH & UH&Interjection \\ \hline
-\end{tabular}
-\caption{Closed class used as POS tags instead of original POS tags}
-\label{table:2}
-\end{table}
-\subsection{Conditional random fields}
-A linear conditional random Þeld is a way to apply a log-linear model to the task where we have different sequence of words with different length. The standard log-linear model is:
+After constructing our vocabulary, we need to find a way to represent our documents. Each document is represented as a vector of length V (length of vocabulary), where each elements of this vector describes number of appearance of a particular word in the document. If this vector is $x$ then its $j^{th}$ element, $x_j$, is the number of appearance of word j from vocabulary in the document. The length of document is $n=\sum_{m}x_j.$
+\subsection{The multinomial distribution}
+After representing documents, we need to select a model for a set of documents. This model is a probability model, and we want to use maximum likelihood to find the best parameters that best represent our training data. The probability distribution that we use is the multinomial distribution. It could be represented mathematically as:
 
 \begin{equation}
-\hat y = arg\max_y p(y|x;w)
+p(x;\theta)=(\frac{n!}{\prod_{j=1}^{m}x_j!})(\prod_{j=1}^{m}\theta_j^{x_j}).
 \end{equation}
-for each training example x. Since the number of label tag sequences are exponential this task is very complex. Restricting the problem to just two adjacent POS tags and two consecutive labels makes  the problem much less easier to solve. Moreover, in this task we maximize log conditional likelihood (LCL) with regularization instead of original problem. 
-\subsection{ Inference algorithms for linear-chain CRFs}
-In order to solve the argmax problem, we can ignore the regularization factor since it is constant. Mathematically, we could write the problem as:
+where data x is a vector of non-negative integers and the parameters $\theta$ are real-valued vectors. Moreover, the sum of elements of vector $\theta$ have to be equal to 1: $\sum_{j=1}^{m}\theta_j=1$.
 
-\begin{equation}
-\hat y = arg\max_{\bar{y}} p(\bar{y}|\bar{x};w)=arg\max_{\bar{y}}\sum_{j=1}^{J}w_jF_j(\bar{x},\bar{y}).
-\end{equation}
-Using $F_j=\sum_{i=1}^{n+1}f_j(y_i,y_{i-1},POS(x_i),POS(x_{i-1})$ we could rewrite the objective function as:
-\begin{align}
-\hat y = arg\max_{\bar{y}} \sum_{j=1}^{J}w_j\sum_{i=1}^{n+1}w_jf_j(y_i,y_{i-1},POS(x_i),POS(x_{i-1}) \\
-= arg\max_{\bar{y}}\sum_{i=1}^{n+1}g_i(y_{i-1},y_i).
-\end{align}
-where we define:
-\begin{equation}
-g_i(y_{i-1},y_i)=\sum_{j=1}^{J}w_jf_j(y_{i-1},y_i).
-\end{equation}
-Supposing that we have $\bar{x}$, $w$, and $i$  computing $g_i$ needs $O(m^2J)$ time, if we assume that we have $m$ different labels including $STOP$ and $START$ which show start and stop of the sentence. $U(k,v)$ is defined as the maximum of sum over $g_i$s from $i=1$ to $k$ such that the label of $k^{th}$ tag is $v$. This is equal to:
+Computing the probability of a document requires $O(n)$, where n is the number of words in a document. It is due to the fact that in a single document, most of words in vocabulary do not contribute and $\theta_j^{x_j}=1$ and $x_j!=1$.
 
+The log probability of the probability of a document is equal to:
 \begin{equation}
-U(k,v)=\max_{y_1,...y_{k-1}}\sum_{i=1}^{k-1}g_i(y_{i-1},y_i) + g_k(y_{k-1},v).
-\end{equation} 
-This equation could be rewrite as:
-\begin{align}
-U(k,v)=\max_{y_{k-1}}\max_{y_1,...y_{k-2}}\sum_{i=1}^{k-2}g_i(y_{i-1},y_i) + g_k(y_{k-2},y_{k-1})+g_k(y_{k-1},v)\\
-=\max_u[U(k-1,u)+g_k(u,v)].
-\end{align}
-where $y_{k-1}$ is equal to $u$. We need to compute $\max U(k-1,u)$ for $m$ different u, so computing $U(k,v)$ requires $O(m)$ time, if $v$ is fixed. Therefore, we can compute $U(k,v)$ for different $v$s in $O(m^2)$ time. Lastly, we can find best label for the entire sentence by:
-\begin{equation}
-\hat y_n=arg\max_vU(n,v).
+\log p(x;\theta)=\log n!-[\sum_{j=1}^m\log x_j!]+[\sum_{j=1}^m x_j.\log \theta_j]
 \end{equation}
- In the above analysis we assume that $g_i$s are known. Considering these $g_i$s for a sentence $\bar{x}$ of length $n$, we can compute optimal $\hat y$ in $O(m^2nJ+m^2n)$.
-\subsection{Gradients for log-linear models}
-In order to train a log-linear model we have to find $w_j$s that maximize the objective function which is the conditional probability of labels given training examples. To solve maximization problem we calculate derivative of objective function with respect to parameters and set them zero. Since our problem is convex, this gives us the best answer. It is useful to note that instead of solving the main problem we solve LCL. Consequently, we can write:
-\begin{align}
-\frac{\partial}{\partial w_j}logp(y|x;w)=F_j(x,y)-\frac{\partial}{\partial w_j}logZ(x,w) \\
-= F_j(x,y)-\frac{\partial}{\partial w_j}Z(x,w).
-\end{align}
-where $y$ is the known true label of the training example $x$.
+Given a set of training documents, the maximum likelihood estimate of the $j^th$ $\theta$ (parameter) is:
 \begin{equation}
-\frac{\partial}{\partial w_j}Z(x,w)=\frac{\partial}{\partial w_j}\sum_{y'}[exp\sum_{j'}w_{j'}F_{j'}(x,y')]
+\theta_j = \frac{1}{T}\sum_x x_j
 \end{equation}
-where $y'$ is different candidate labels. So we have:
-\begin{equation}
-\frac{\partial}{\partial w_j}Z(x,w)=\sum_{y'}[exp\sum_{j'}w_{j'}F_{j'}(x,y')]F_j(x,y')
-\end{equation}
-And lastly we have:
-\begin{align}
-\frac{\partial}{\partial w_j}logp(y|x;w)=F_j(x,y)-\frac{1}{Z(x,w)}\sum_{y'}F_j(x,y')[exp\sum_{j'}w_{j'}F_{j'}(x,y')]\\
-= F_j(x,y)-\sum_{y'}F_j(x,y')[\frac{exp\sum_{j'}w_{j'}F_{j'}(x,y')}{Z(x,w)}].
-\end{align}
-Considering that $[\frac{exp\sum_{j'}w_{j'}F_{j'}(x,y')}{Z(x,w)}] = p(y'|x;w)$ we can simplify above equation to:
-\begin{align}
-\frac{\partial}{\partial w_j}logp(y|x;w)=F_j(x,y)-\sum_{y'}F_j(x,y')p(y'|x;w)\\
-= F_j(x,y)-E_{y'~p(y'|x;w)}[F_j(x,y')].
-\end{align}
-Above equation is just for an example of training set, and for the entire training set, $T$, we could rewrite it as:
-\begin{equation}
-\sum_{<x,y>\in T}F_j(x,y)=\sum_{<x,.>\in T}E_{y~p(y|x;w)}[F_j(x,y)].
-\end{equation}
-\subsection{Stochastic gradient ascent}
-Usually, we calculate the best $w_j$ by gradient ascent method, which is equal to:
-\begin{equation}
-w_j \leftarrow w_j+\sum_{<x,y>\in T}F_j(x,y)=\sum_{<x,.>\in T}E_{y~p(y|x;w)}[F_j(x,y)]
-\end{equation} 
-where $\lambda$ is learning factor. Updating $w_j$ using above equation is very time consuming so in practice we use stochastic gradient methods considering just one random sample at each time as follows:
-\begin{equation}
-w_j \leftarrow w_j+\lambda(F_j(x,y)-E_{y'~p(y'|x;w)}[F_j(x,y')])
-\end{equation}
-In this way, the total time complexity of the updates for all $j$, for a single training $x$ and its label $y$, is $O(Jm^2n)$.
-\subsection{The Collins perceptron}
-Suppose that $E_{y'~p(y'|x;w)}[F_j(x,y')]=F_j(x,\hat y)$ where $\hat y = arg\max_y p(y|x;w)$, so we can rewrite the stochastic gradient update rule as:
-\begin{equation}
-w_j\leftarrow w_j+\lambda F_j(x,y)-\lambda F_j(x,\hat y).
-\end{equation}
-This method is called Collins perceptron. It is useful to mention that multiplying all $w_j$s by the same factor does not affect on finding label $\hat y$ which has highest probability. So we could simply set $\lambda$ to be equal to 1.
-\subsubsection{Gibbs sampling}
-Instead of assigning $E_{y'~p(y'|x;w)}[F_j(x,y')]=F_j(x,\hat y)$ we can compute $E_{y'~p(y'|x;w)}[F_j(x,y')]$ by sampling $y$ values from distribution $p(y|x;w)$. To do this we can use Gibbs sampling. if we write $y$ as a set with its sub-tags as $y=\{y_1,....y_n\}$, and if we suppose that we have all the conditional distributions:
-\begin{equation}
-p(Y_i=v|x,y_1,...,y_{i-1},y_{i+1},....y_n;w)
-\end{equation}
-then we can draw a stream of samples as: \\
-1) select an arbitrary initial guess $\{y1,.....,y_n\}$ \\
-2) Draw a new value for $y_1$ from distribution $p(Y_1|x,y_2,...,y_n;w);$ \\
-Draw a new value for $y_1$ from distribution $p(Y_1|x,y_2,...,y_n;w);$ \\
-Draw a new value for $y_2$ from distribution $p(Y_2|x,y_1,y_3,...,y_n;w);$ \\
-continue above procedure till finding $y_n$ from distribution $p(Y_n|x,y_1,y_2,...,y_{n-1};w);$
-3)Repeat 2. It could be proved that repeating step 2 infinitely, we converge to the distribution p(y|x;w).
+where the sum is over the entire documents $x$ in training set. $T$ in above equation is a normalization factor and it is equal to: $T=\sum_x \sum_j x_j$, which is the total number of words in all documents of training set. 
 
-We can calculate distribution $p(v|x,y_{-i};w)$ by:
+In order to avoid probabilities that are perfectly zero, we set:
 \begin{equation}
-p(v|x,y_{-i};w)=\frac{[exp g_i(y_{i-1},v)][exp g_{i+1}(v,y_{i+1})]}{\sum_{v'}[exp g_i(y_{i-1},v')][exp g_{i+1}(v',y_{i+1})]}
+\theta_j=\frac{1}{T'}(c+\sum_x x_j).
 \end{equation}
-Consider doing one round of Gibbs sampling, requires $O(mn)$ time.
-\subsection{Contrastive divergence}
-Contrastive divergence method tries to find a single $y^*$ similar to true label y, with higher probability. We implement contrastive divergence by Gibbs sampling which is equal to finding a $y^*=<y_1^*,y_2^*,...,y_n^*>$ by usually one round of Gibbs sampling, starting from true label as step one.
+The constant $c$ is called a pseudo-count, and it relates to our prior knowledge of our parameters.
+ 
+\subsection{ Generative processes}
+In order to do unsupervised learning over a set of training documents, a common way is to assume that data were generated by some random process, and then we want to infer the parameters of the process. In generative process, we use maximum likelihood or some revised versions of it such as maximum a posteriori (MAP) probability for learning. A generative process for a single document is as follows: \\
+A: fix a multinomial distribution with parameter vector $\phi$ of length $V$. \\
+B: for each word in the document \\draw a word $w$ according to $\phi$
+%%%%%%%%%%%%%%%%%%
+
+
+
+A single multinomial distribution can only represent a category of closely re- lated documents. For a collection of documents of multiple categories, a simple generative process isA: fix a multinomial ? over categories 1 to K for category number 1 to category number Kfix a multinomial with parameter vector ?k B: for document number 1 to document number Mdraw a category z according to ? for each word in the documentdraw a word w according to ?z
+Note that z is an integer between 1 and K. For each document, the value of z is hidden, meaning that it exists conceptually, but it is never known, not even for training data. The generative process above gives the following global probability distribution:Kf(x) = ?? ?kf(x; ?k).k=1
+
+where x is a document and ?k is the parameter vector of the kth multinomial. K is called the number of components in the mixture model. For each k, f(x;?k) is the distribution of component number k. The scalar ?k is the proportion of component number k. A distribution like this is called a mixture distribution. In general, the components can be probability density functions (pdfs), for example Gaussians, or probability mass functions (pmfs), for example multinomials.
+\subsection{Latent Dirichlet allocation}
+
+\subsection{Training via Gibbs sampling}
+
+\subsection{ Implementation notes}
 
 \section{Design of Experiments}
 
-To test the models described above, we perform several experiments on the given dataset. This is an English language punctuation dataset that consists of 70115 training and 28027 test sentences. We use only training data to fit the model,  one third for validation and two thirds for training. After training is complete, the test data is used to assess prediction and generalization of the model. Each sentence in the training data consists of a set of words. For multiple sentences, there was a few form of syntax complications such as use of '\$' in place of the word 'money', or words that were split to two parts by space. We ignored all such cases, as they were few sentences and finding a complete list of them required going through the entire dataset which was very time consuming.\\
 
 \subsection{Feature extraction}
-Our features are of the form $F_j(x,y)=\sum_{i=1}^{n+1}f_j(y_{i-1}, y_i, POS(x_{i-1}),POS( x_i))$, where $y_i$ and $y_{i-1}$ denote labels in positions $i$ and $i-1$ of the sentence and $POS(x_i)$ and $POS(x_{i-1})$ denote POS tags of sentence in corresponding positions. So each feature function $f_j$ depends on two different POS tags and two different labels. In other words we have J different feature functions $f_j, j=1\ldots J$ with $J=m^2k^2$ where $m$ is equal to number of labels and $k$ is equal to number of POS tags. Since our feature functions are indication functions, they are 1 for one combination of POS tags and punctuation tags. It is useful to mention that actual number of feature functions are far smaller than $J$ since many of combinations of POS tags do not happen in our training set. In order to implement it more efficiently, we use the combination of POS tags and punctuation tags as an index into the weight vector $w$. Specifically, we assign each POS tag and each punctuation tag a number. Then the index into weight vector is the decimal equivalent of the four digit number that is acquired by four indices of POS and punctuation tags. Consequently, if we want to compute $F_j(x,y)$ we count number of observations of the combination $\{y_1, y_2, POS(x_{1}),POS( x_2)\}$ along the sentence.
-%In order to calculate a unique index for each combination we use the following formula:
-%\begin{align}
-%idx = idx_{POS_2}*(number of labels)^2(number of POS tags)\\
-%+idx_{POS_1}*(number of labels)^2+idx_{label_2}*(number of labels)+idx_{label_1}.
-%\end{align}
-%The other important thing about our feature functions is that, we increase the length of sentences to become the same, equal to $d$. In shorter sentence after the $STOP$ we have 0, for $STOP$ we assign zero and to $START$ we assign $d+1$ ($d$ is the maximum length of sentence in training data).
+
 \subsection{Initialization}
-For Collin's Perceptron, as pointed out in the lecture, the learning rate can be fixed to $\lambda=1$. This is because scaling scaling the weight vector $w$ does not affect the predicted label by the model. Using different learning rates leads to different weight vectors that are scaled versions of each other. Therefore, for both experiments on Collin's Perceptron and Contrastive Divergence, we fix $\lambda \leftarrow 1$. \\
-For initializing the weight vector $w$, we use small random Normal numbers from $\mathcal N(0.,1e-5)$. This is because as we describe later, limiting the weight vector entries $w_j$ to be in a small range $[-a,a]$ helps to prevent over-fitting. Because both $a$ and $-a$ represents the extreme learned situation, a good option for initial weights is a random vector that is not biased for specific feature functions, that is $w_j$ better be close to 0 for all $j$.\\
+
 \subsection{Performance Measure}
-We report the performance of the models in two different ways. First, we report the prediction of individual target tags, That is, how accurate the model can predict the individual punctuations tags in corpus sentences. We report the accuracy of prediction for the entire tags as wells as individual target tags. The benefit of looking into individual punctuation tag prediction is that it reveals if over-fitting has happened due to imbalanced distribution of tags in the training data. Next, we report the accuracy of model for predicting sentence punctuation. The accuracy for this case should be lower because each sentence punctuation is composed of multiple tags. 
-\section{Results of Experiments}
-\subsection{Collins perceptron}
-For training Collin's Perceptron, we divide the training data into two thirds for training and one third for validation. The initial value for the weight vector entries $w_j$ is chosen to be small random numbers from $\mathcal{N}(0,1e-5)$. We use early stopping as a criteria for terminating the training procedure. Because Collin's Perceptron has no hyper parameters, there is a chance of over fitting to the training data. In the train procedure, we divide the data into train and validation sets and start training only with train data. After each epoch, we measure the accuracy for predicting individual punctuation tags on the validation data. If the accuracy has decreased, we stop the training and roll back the weights to previous values.\\
-For the first experiment, we train Collin's perceptron with early stopping. Figure \ref{figEarlyStoppingPercGibbs} shows that the training stops after 4 epochs. However, after the first epoch, the model is almost converged and the accuracy changes a small amount after that. The accuracy for predicting individual tags and sentences for validation and test sets are shown in Table \ref{tablePredPerceptron}.\\
 
-\begin{figure}[h!]
-\centering
-\includegraphics[width=.7\textwidth]{./figs/Perceptron/Perceptron.png}
-\caption{Early stopping for Collin's Perceptron. }
-\label{figEarlyStoppingPercGibbs}
-\end{figure}
-
-\begin{table}[h!]\footnotesize
-  \caption{Collin's Perceptron performance on the given data set}
-\begin{center}
-    \begin{tabular}{| c | c | c | }
-    \hline
-    \textbf{ Measure} & \textbf{Validation set accuracy} & \textbf{Test set accuracy} \\ \hline
-    Individual tag prediction & 0.911 & 0.901  \\ \hline
-    Sentence level prediction & 0.389 & 0.371  \\ \hline
-    \end{tabular}
-    \label{tablePredPerceptron}
-\end{center}
-\end{table}
-
-
-In order to further assess the correctness of the model, we look into the accuracy for predicting individual tags, that is, how much the model is accurate in predicting different punctuation tags. Table \ref{tableIndividualTagsPerceptron} shows the accuracy for predicting individual tags. Figure \ref{figPerceptronConfMat} shows the confusion matrix for the same prediction problem. A quick look at table \ref{tableIndividualTagsPerceptron} and figure \ref{figPerceptronConfMat} reveals some properties of the Collin's Perceptron model. Here, the model has learned only the most frequent punctuation tags in sentences, that is SPACE and PERIOD. For each test sentence the model predicts a simple punctuation tag sequence which has SPACE or PERIOD in most positions (look at SPACE and PERIOD columns in the test confusion matrix in figure \ref{figPerceptronConfMat}). This behavior is somehow natural, because in training phase, the model sees sequences of tags with SPACE or PERIOD more often, and thus the corresponding weights to these weights are more frequently updated. Table \ref{tablePerceptronWeights} shows 20 largest entries in the weight vector and their corresponding feature function.
-
-In order to investigate whether these weights are meaningful and sensible or not, we could go through the whole training set and training labels and look over the frequency of their pattern ($y_i,y_{i-1},POS(x_i),POS(x_{i-1})$ where $i$ is from 1 to n) that happens in the context. If the frequency of that pattern is large among the number of  observance from $POS(x_i)$ and $POS(x_{i-1})$, we could conclude that $w_j$ should be large. It is true since if we observe that pattern of POSs, we could say that with high probability their labels are from those labels in pattern. But, we could look over our training labels and the sentence associated with them and check above condition intuitively. For example, for the largest weigh, $\{NN,VB, COMMA, SPACE\}$ we search over the text and find that there are many examples associated with this, for example: "On another note do you have any idea how Patti is holding up" we have the combination of "note" and "do" at first part of sentence that their POS tags are noun (NN) and verb (VB) truly.  Or for example for the combination of $\{NN, PRP, COMMA, SPACE\}$, we have another sentence: "If we have one year of data we can tell which will be cheaper" and at middle part we have the combination of "data" and "we", which are noun (NN) and pronoun (PRP) that its weight is big again. Another example could be for the big weight for the pattern $\{ADJ, PRP, COMMA, SPACE\}$. We have a sentence: "Sorry I didn't attach the form", and at first words we have "Sorry" and "I" which are adjective (ADJ) and pronoun (PRP) consecutively. Another meaningful weigh is the pattern $\{NN, IN, COMMA, SPACE \}$. We have an example: "Thank you for the offer but I am not doing the ride this year". In the middle we have "offer" and "but" which are noun and conjunction the weight according to this pattern is large, and based on grammatical point of view,  we usually have "COMMA" before conjunctions.
-
-\begin{table}[h!]\footnotesize
-  \caption{Accuracy of predicting different tags by Collin's Perceptron}
-\begin{center}
-    \begin{tabular}{| c | c | c | c | c |}
-    \hline
-    \textbf{ Method} & \multicolumn{2}{ c| }{\textbf{Validation set}}  & \multicolumn{2}{ c| }{\textbf{Test set}} \\ \hline
-     & Accuracy & Frequency & Accuracy & Frequency \\ \hline
-    EXCLAMATION\_POINT & 0.0 & 2567 & 0.0 & 1066  \\ \hline
-    SPACE & 0.947 & 580077  & 0.947 & 235536\\ \hline
-    QUESTION\_MARK & 0.145 & 10904 & 0.1444 & 4792 \\ \hline
-    PERIOD & 0.849 & 57259  & 0.847 & 22492\\ \hline
-    COLON & 0.009 & 1009  & 0.003 & 1174\\ \hline
-    COMMA & 0.248 & 28555  & 0.262 & 10665\\ \hline
-    \end{tabular}
-    \label{tableIndividualTagsPerceptron}
-\end{center}
-\end{table}
-
-\begin{figure}[h!]
-\centering
-\includegraphics[width=1.\textwidth]{./figs/figPerceptronConfMat.png}
-\caption{Confusion matrix for predicting individual tags using Collin's Perceptron on Left: validation, and Right: test sets.}
-\label{figPerceptronConfMat}
-\end{figure}
-
-
-\begin{table}[h!]\footnotesize
-  \caption{20 Largest entries of the weight vector  for Collin's Perceptron after learning. For each weight entry, its magnitude and corresponding feature function is listed.}
-\begin{center}
-    \begin{tabular}{| c|c | c | c | c | c |}
-    \hline
-    Number& \textbf{ Magnitue} & $X_{i-1}$ & $X_i$ & $Y_{i-1}$& $Y_i$ \\ \hline
-1 &3964.99 & NN & VB & COMMA & SPACE  \\ \hline
-2 & 3927.99 & NN & VB & SPACE & SPACE  \\ \hline
-3 & 3308.99 & ADJ & NN & SPACE & COMMA  \\ \hline
-4 & 2875.99 & IN & NN & SPACE & COMMA  \\ \hline
-5 & 2460.99 & PRP & NN & SPACE & COMMA  \\ \hline
-6 & 2099.00 & NN & IN  & COMMA & SPACE  \\ \hline
-7 & 2067.00 & NN & IN & SPACE & SPACE  \\ \hline
-8 & 1800.99 & NN & NN & COMMA & SPACE  \\ \hline
-9 & 1771.99 & PRP & VB & SPACE & COMMA  \\ \hline
-10 & 1759.00 & NN & NN & SPACE & SPACE  \\ \hline
-11 & 1508.99 & NN & WRB & COMMA & SPACE  \\ \hline
-12 & 1463.00 & NN & WRB & SPACE & SPACE  \\ \hline
-13 & 1451.00 & NN & PRP & COMMA & SPACE  \\ \hline
-15 & 1409.00 & NN & PRP & SPACE & SPACE  \\ \hline
-16 & 1209.99 & ADJ & PRP & COMMA & SPACE  \\ \hline
-17 & 1198.99 & VB & ADJ & SPACE & COMMA  \\ \hline
-18 & 1077.00 & ADJ & PRP & SPACE & SPACE  \\ \hline
-19 & 1056.00 & NN & ADJ & COMMA & SPACE  \\ \hline
-20 & 1018.99 & NN & ADJ & SPACE & SPACE  \\ \hline
-21 & 997.000 & IN & PRP & SPACE & COMMA  \\ \hline
-    \end{tabular}
-    \label{tablePerceptronWeights}
-\end{center}
-\end{table}
 
 \subsection{Contrastive Divergence}
-For Contrastive Divergence, the training setup is the same as mentioned in previous section. The training data is divided into training and validation sets, and early stopping is applied to terminate the training. The initial value for the weight vector entries are chosen randomly from $\mathcal{N}(0,1e-5)$. 
+
 \subsubsection{Training with Bounded Weights}
-As we saw in Collin's Perceptron, the weight vector entries grow unbounded for tags that are more frequent in the training data. This unbounded growth can cause problems during prediction, because the large weights tend to bias the decision in favor of more frequent tags (e.g. SPACE or PERIOD). One way to deal with this situation is to use a separate learning rate for each entry in the weight vector. Then if a $w_j$ has been updated frequently, we can decrease its learning rate. A  similar approach is to force the $w_j$s to be in a specified range $[-a,a]$. For each update, one then should check that $w_j$ doesn't exceed this bound. We adapt this technique in training of Contrastive Divergence model, with hope that this reduces over-fitting to specific punctuation tags.\\
-Figure \ref{figCDEarlyStopping} shows that early stopping terminates the training for Contrastive Divergence after two epochs. Tables \ref{tablePredGibbs} and \ref{tableIndividualTagsGibbs} show the performance for this model. These results are very interesting as we compare it row by row to table \ref{tableIndividualTagsPerceptron}. We see that the tag EXCLAMATION\_POINT, QUESTION\_MARK and COLON are learned more and accuracy of their prediction has  increased in Contrastive Divergence compared to Collin's Perceptron. Specifically this is interesting because these are the lowest frequency symbols in the training dataset. However, this learning occurred at the expense of \emph{unlearning} COMMA and PERIOD, which lead to decreased overall prediction accuracy both on sentence level and individual tag level prediction.  Table \ref{tableGibbsWeights} displays some of the weights learned by Contrastive Divergence. 
 
-As described for Collins perceptron, we could investigate meaningfulness of weights by searching for different patterns of labels and POS tags and their frequency and compare them intuitively with our weights. Intuitively, we could say that the more frequent a pattern is, the more probable it is. But we look over the meaningfulness of large $w_j$s by searching for different patterns and finding repetitive examples. For example for the pattern $\{PRP, EX(Existential there), SPACE, PERIOD\}$ we have the example: "See you there", "We will see you there", or "We look forward to seeing you there".
-
-\begin{figure}[h!]
-\centering
-\includegraphics[width=.7\textwidth]{./figs/Gibbs/CD.png}
-\caption{Early stopping for Contrastive Divergence.}
-\label{figCDEarlyStopping}
-\end{figure}
-
-
-\begin{table}[h!]\footnotesize
-  \caption{Contrastive Divergence performance on individual tag and sentence punctuation prediction.}
-\begin{center}
-    \begin{tabular}{| c | c | c | }
-    \hline
-    \textbf{ Measure} & \textbf{Validation set accuracy} & \textbf{Test set accuracy} \\ \hline
-    Individual tag prediction & 0.866 & 0.852  \\ \hline
-    Sentence level prediction & 0.113 & 0.115  \\ \hline
-    \end{tabular}
-    \label{tablePredGibbs}
-\end{center}
-\end{table}
-
-
-\begin{table}[h!]\footnotesize
-  \caption{Accuracy of predicting different tags by Contrastive Divergence}
-\begin{center}
-    \begin{tabular}{| c | c | c | c | c |}
-    \hline
-    \textbf{ Method} & \multicolumn{2}{ c| }{\textbf{Validation set}}  & \multicolumn{2}{ c| }{\textbf{Test set}} \\ \hline
-     & Accuracy & Frequency & Accuracy & Frequency \\ \hline
-    EXCLAMATION\_POINT & 0.486 & 2567 & 0.518 & 1066  \\ \hline
-    SPACE & 0.945 & 580077  & 0.947 & 235536\\ \hline
-    QUESTION\_MARK & 0.249 & 10904 & 0.247 & 4792 \\ \hline
-    PERIOD & 0.849 & 57259  & 0.847 & 22492\\ \hline
-    COLON & 0.3 & 1009  & 0.5 & 1174\\ \hline
-    COMMA & 0.086 & 28555  & 0.076 & 10665\\ \hline
-    \end{tabular}
-    \label{tableIndividualTagsGibbs}
-\end{center}
-\end{table}
-
-\begin{table}[h!]\footnotesize
-  \caption{20 Largest entries of the weight vector  for Contrastive Divergence after learning.}
-\begin{center}
-    \begin{tabular}{|c| c | c | c | c | c |}
-    \hline
-Number &    \textbf{ Magnitue} & $X_{i-1}$ & $X_i$ & $Y_{i-1}$& $Y_i$ \\ \hline
-1&  0.1& WRB& IN &SPACE& SPACE\\ \hline
-2&  0.1& NN &UH &SPACE &COLON\\ \hline
-3 & 0.1& NN &UH &SPACE &PERIOD\\ \hline
-4 & 0.1 &ADJ &WH &SPACE &SPACE\\ \hline
-5 & 0.1 &PRP &ADJ &COMMA& SPACE\\ \hline
-6 & 0.1 &PRP &ADJ &SPACE &QUESTION\_MARK\\ \hline
-7 & 0.1 &PRP& ADJ &SPACE &SPACE\\ \hline
-8 & 0.1 &IN &VB &SPACE &SPACE\\ \hline
-9 & 0.1 &VB &IN &SPACE &SPACE\\ \hline
-10 & 0.1 &VB &IN &SPACE &PERIOD\\ \hline
-11 & 0.1 &VB &IN &SPACE &COMMA\\ \hline
-12 & 0.1 &IN &VB &SPACE &QUESTION\_MARK\\ \hline
-13 & 0.1 &IN &VB &SPACE &PERIOD\\ \hline
-14 & 0.1 &NN &SYM &COMMA& SPACE\\ \hline
-15 & 0.1 &CC &CD &SPACE &PERIOD\\ \hline
-16 & 0.1 &CC &CD &SPACE &SPACE\\ \hline
-17 & 0.1 &PRP &CD& SPACE &PERIOD\\ \hline
-18 & 0.1 &PRP &CD &SPACE &QUESTION\_MARK\\ \hline
-19 & 0.1 &PRP &EX &SPACE &QUESTION\_MARK\\ \hline
-20 & 0.1 &PRP& EX &SPACE &PERIOD\\ \hline
-    \end{tabular}
-    \label{tableGibbsWeights}
-\end{center}
-\end{table}
-
-\begin{figure}[h!]
-\centering
-\includegraphics[width=1.\textwidth]{./figs/figGibbsConfMat.png}
-\caption{Confusion matrix for individual tag prediction for Contrastive Divergence for Left: validation and Right: Test data.}
-\label{figCDConf}
-\end{figure}
 
 \subsection{Model Averaging}
-In previous section, we saw that both models (Collin's Perceptron and Contrastive Divergence) cannot distinguish between different punctuation tags at the end of sentence.  One reason for this is that the feature functions we picked look only locally to POS and punctuation tags. When this happens, the model tends to favor one specific tag at the end of sentences during training and prediction. One way to overcome the limitations of the feature functions is to train different models on the data and then combine their results. The basic idea is as follows: train different models that predict only a specific punctuation tag. Then combine these models using model averaging. By using different models for different punctuation tags, the effect of imbalanced frequency of target tags is alleviated. However, combining different models is not trivial as they are trained on different aspects of the training data.\\
-One easy way to combine different models is to average their weights and use that for prediction. This makes sense only in the case of bounded weights, where in training, weight components $w_j$ are limited to a specified range $[-a,a]$. We pick this range to be the same for different models, and train a model for predicting each of the punctuation tags separately. We use a variant of Contrastive Divergence method mainly because of simplicity of implementation. We believe that the choice of base model is not too important for this case. The training procedure for target tag $z$ is as follows: pick the next training sample, change its punctuation tags only in places where the tag is $z$. The change is random and can be any target tag, including $z$ itself. Then calculate the corresponding feature functions and update the weights. Early stopping is used in training each model. Then we average the weight vector of these models and use that for prediction.\\
-We train 6 models for 6 target tags we have in the data. on 4 models, the prediction accuracy on validation set is more than 99\%. On COMMA and COLON, however the prediction accuracy is much lower, around 51\% for COMMA and 69\% for COLON. Table \ref{tableCombinedModels} shows the prediction accuracy of the model with averaged weights on validation and test sets. For individual tag prediction, the averaged model achieved 83\% for both validation and test sets.
 
-\begin{table}[h!]\footnotesize
-  \caption{Accuracy of predicting target tags by averaged model}
-\begin{center}
-    \begin{tabular}{| c | c | c | c | c |}
-    \hline
-    \textbf{ Method} & \multicolumn{2}{ c| }{\textbf{Validation set}}  & \multicolumn{2}{ c| }{\textbf{Test set}} \\ \hline
-     & Accuracy & Frequency & Accuracy & Frequency \\ \hline
-    EXCLAMATION\_POINT & 0.161 & 2567 & 0.138 & 1066  \\ \hline
-    SPACE & 0.865 & 580077  & 0.866 & 235536\\ \hline
-    QUESTION\_MARK & 0.149 & 10904 & 0.151 & 4792 \\ \hline
-    PERIOD & 0.765 & 57259  & 0.762 & 22492\\ \hline
-    COLON & 0.667 & 1009  & 0.859 & 1174\\ \hline
-    COMMA & 0.182 & 28555  & 0.205 & 10665\\ \hline
-    \end{tabular}
-    \label{tableCombinedModels}
-\end{center}
-\end{table}
 
 \subsection{Comparison Between Different Models}
-By  looking only at overall prediction accuracy (both tag and sentence level), Collin's Perceptron achieves the highest accuracy. This is despite the fact that this model acts very poor in predicting tags besides SPACE and PERIOD. This is actually a characteristic of the given data, that is, SPACE and PERIOD are dominating in the data that a model can only learn them and perform good without caring about other tags. By using bounded weights, we see that Contrastive Divergence  is less over-fit in predicting individual tags. However this occurs at the cost of loosing overall prediction accuracy. By looking into the learned weights, we see that the weights learned by Collin's Perceptron emphasize simple feature functions that are mainly composed of SPACE. The proposed averaged model acts better in predicting tags that are less frequent. However, the overall prediction accuracy drops because of the averaging of weight vectors. Overall, the Collin's Perceptron method acts better in predicting tags for the given dataset.
-Collin's Perceptron requires calculation of $\hat{y}$ in each iteration, which is the most probable label for the example $\bar{x}$ being trained. This requires $O(nm^2)$ for calculation of $U(n,v)$ matrix and $O(nm^2J)$ for calculation of $g_i$ functions, leading to total time of $O(nm^2J + nm^2)$. The total number of proposed feature functions is $J = k^2 m^2$, where $k$ is the total number of POS tags we used. We don't calculate the entire feature functions, so the term $O(nm^J)$ is discarded. The complexity of our algorithm thus reduces to the complexity of calculating the $U$ matrix, in which feature functions are calculated if necessary.  For each column of $U$, we are considering $m^2$ possible tags for $y_{i-1} y_i$. That is, we only required to calculate $m^2$ feature functions for each column of $U$. Therefore, the total complexity for Collin's Perceptron reduces to $O(nm^2)$. For $S$ training examples and $T$ epochs, the training procedure requires $O(STnm^2)$.\\
-For Gibbs sampling, computing the posterior requires $O(mn)$ and calculation of $g_i$ functions requires $O(nm^2J)$. Again, we don't recalculate the entire $g_i$ functions. instead, we calculate $g_i$ on the go for each pair of $y_{i-1} y_i$. Since we are considering only $m$ pairs of punctuation tags, for sampling one component of vector $y$ we require calculation of $m$ feature functions. Therefore, the total time complexity for one iteration of Gibbs sampling reduces $O(nm)$. The time complexity for the complete training procedure is $O(STnm)$.
+
 
 \section{Discussion}
-In this paper, we reported the details and results of a CRF model for prediction of English language punctuation prediction. A set of feature functions was proposed based on POS tags of the input sentence and punctuation tags. We also described how to efficiently calculate the feature functions. The details of training the model with two different methods, Collin's Perceptron and Contrastive Divergence, were described.  We saw that Collin's Perceptron model can predict the individual tags with 91\% accuracy. On the other hand, Contrastive Divergence model was improved at the prediction of less frequent  target tags over Collin's Perceptron. We also proposed a third model, that was based on model averaging. Six different models were trained, each to predict a specific target tag, using Contrastive Divergence. Then a final model was formed by averaging their weights. We saw that this model further improved on prediction of less frequent individual tags over the other two methods.\\
-We saw that Collin's Perceptron is better if we consider overall prediction rate for individual tags. But it suffers from over fitting to most prevalent punctuation tags. We proposed bounded weights update inside training procedure to avoid this form of over-fitting. We saw that this techniques results in improved prediction accuracy for less frequent punctuation tags. However, it resulted in un-learning the frequent punctuation tags because of the bound. This holds promise though that if a more sophisticated  technique such as individual learning rate for weight entries $w_j$ would result in an improved prediction accuracy while avoiding over-fitting to more frequent tags.\\
-We also proposed the averaged model, which simply averaged the weight vectors of different models tuned to predict different punctuation tags. This model could predict the less frequent tags better that Contrastive Divergence, but because of weight averaging, it looses prediction accuracy. Again, this holds promise that a more sophisticated model averaging technique would result in a better prediction accuracy.
+
 
 \begin{thebibliography}{9}
 
-\bibitem{topia}
-  Topia term extractor Python package,
-   https://pypi.python.org/pypi/topia.termextract/
 
 \end{thebibliography}
 
