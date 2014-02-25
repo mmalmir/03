@@ -36,10 +36,14 @@ class ldaTopicModel:
     def trainCorpus(self,X):
         docs,words     = np.where(X!=0)
         freq           = X[docs,words]
+        #maxfreq              = np.max(freq) #dimention?
         ndocs,dicSize  = X.shape
         topicForWord   = np.zeros(freq.sum()) #[t] topic
+        #topicForword = np.zeros([ndocs,dicSize,maxfreq)
         #create count arrays
         wordsInTopic        = np.zeros([self.nTopics,dicSize]) # [k,t] number of words t and topic k
+
+        #wordsInTopic       = np.zeros([self.nTopics,dicSize])
         topicsInDoc         = np.zeros([ndocs,self.nTopics])   # [m,k] number of topic k in document m
         totalWordsInTopic   = np.zeros(self.nTopics)           # [k] number of words with topic k
         totalTopicsInDoc    = np.zeros(ndocs)                  # [m] number of topics in document m
