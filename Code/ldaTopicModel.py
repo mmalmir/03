@@ -70,7 +70,7 @@ class ldaTopicModel:
                 cnt += 1
         converged = False
         print topicsInDoc
-        for iiii in range(100):
+        for iiii in range(10):
             print iiii
         #do one round of gibbs sampling
         #update counts
