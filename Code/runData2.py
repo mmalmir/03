@@ -29,11 +29,15 @@ lda        = ldaTopicModel(n_topics = ntopics,alpha= (2./ntopics) * np.ones(ntop
 #print X
 lda.fit(X)
 
+############ TO SAVE, UNCOMMENT
+
 fname = "ldaUCI_3topics.10Iter.pickle"
 f = open(fname,"wb")
 pickle.dump(lda,f)
 f.close()
 
+
+############ TO TEST, UNCOMMENT
 #f = open("ldaUCI_20topics_alpha2k_beta.01.pickle","rb")
 #lda = pickle.load(f)
 #f.close()
