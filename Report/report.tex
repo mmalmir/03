@@ -131,28 +131,19 @@ for $z_i=1$ to $z_i=K$. After simplifications we could write this probability as
 p(z_i=j|\overline{z'},\bar{w})\propto \frac{q'_{jw_j}+\beta_{w_j}}{\sum_t q'_{jt}+\beta_t}\frac{n'_{mj}+\alpha_j}{\sum_k n'_{mk}+\alpha_k}.
 \end{equation}
 where $q_{kt}$ is the number of times that word $t$ occurs with topic $k$ in the whole corpus, and $q'_{jt}$ is equal to $q_{jt}$ with one subtracted from the count for word $t$ with topic $j$. $\overline{n'}_{m}$ is $\overline{n}_m$ with one subtracted from the count for topic $z_i$, and $\overline{n}_m$ is the vector of topic counts $\langle n_{m1},\ldots,n_{mK} \rangle$ for document number $m$.
-\subsection{ Implementation notes}
 
 \section{Design of Experiments}
 
 
-\subsection{Feature extraction}
+\subsection{Dataset Selection}
 
-\subsection{Initialization}
+\subsection{Hyperparameters Selection}
 
-\subsection{Performance Measure}
+\section{Results}
 
+\subsection{Classic400}
 
-\subsection{Contrastive Divergence}
-
-\subsubsection{Training with Bounded Weights}
-
-
-\subsection{Model Averaging}
-
-
-\subsection{Comparison Between Different Models}
-
+\subsection{DailyKOS}
 
 \section{Discussion}
 
