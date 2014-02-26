@@ -8,8 +8,9 @@ from ldaTopicModel import ldaTopicModel
 #load uci data
 data = sio.loadmat("../Data/dataset.mat")
 data = data["dataset"]
-ndocs = data[0,-1]
-nWords = data[1,-1]
+print data
+ndocs = data[0,0]
+nWords = data[1,0]
 X = np.zeros([ndocs,nWords])
 for i in range(3,data.shape[0]):
     doc,w,f = data[i,:]
@@ -17,7 +18,7 @@ for i in range(3,data.shape[0]):
 
 #train classifier
 ntopics    =  10
-lda        = ldaTopicModel(n_topics = 20,alpha= (2./ntopics) * np.ones(ntopics),
+lda        = ldaTopicModel(n_topics = ntopics,alpha= (2./ntopics) * np.ones(ntopics),
                                         beta=0.01*np.ones(nWords))
 print X
 lda.fit(X)
