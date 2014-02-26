@@ -50,10 +50,9 @@ class ldaTopicModel:
         cnt = 0
         #intialize counts
         unif = [1./self.nTopics]*self.nTopics
-        print unif
         for d,w,f in zip(docs,words,freq):# document d with word w, with freq f
             for ii in range(f):
-                z_m_n = np.random.multinomial(1,unif , size=1)[0]
+                z_m_n = np.random.multinomial(1,unif )
                 z_m_n = np.where(z_m_n==1)[0]
 #                print z_m_n
                 #z[d][w][ii]=np.where(np.random.mutinomial((1, [1/3.]*3, size=1) != 0)[1][0]
@@ -95,7 +94,7 @@ class ldaTopicModel:
                     prob = prob / prob.sum()
 #                    print prob
 #                    print prob
-                    z_m_n = np.random.multinomial(1,prob, size=1)[0]
+                    z_m_n = np.random.multinomial(1,prob)
                     z_m_n = np.where(z_m_n==1)[0]
                     wordsInTopic[z_m_n,w]    += 1 #
                     #                totalWordsInTopic[z_m_n] += 1
