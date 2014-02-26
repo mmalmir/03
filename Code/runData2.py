@@ -23,12 +23,12 @@ for line in f:
 f.close()
 wordlist = np.asarray(wordlist)
 #train classifier
-ntopics    =  100
+ntopics    =  2
 lda        = ldaTopicModel(n_topics = ntopics,alpha= (2./ntopics) * np.ones(ntopics),
                                         beta=0.01*np.ones(nWords))
 #print X
 
-fname = "ldaUCI_%dtopics.10Iter.pickle"%ntopics
+fname = "ldaUCI_%dtopics.20Iter.pickle"%ntopics
 ############ TO SAVE, UNCOMMENT
 lda.fit(X)
 f = open(fname,"wb")
@@ -37,9 +37,9 @@ f.close()
 
 
 ############ TO TEST, UNCOMMENT
-f = open(fname,"rb")
-lda = pickle.load(f)
-f.close()
+#f = open(fname,"rb")
+#lda = pickle.load(f)
+#f.close()
 #
 nwrd = 20
 idx = np.argsort(-lda.wordsInTopic)

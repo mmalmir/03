@@ -51,7 +51,7 @@ class ldaTopicModel:
         #intialize counts
         unif = [1./self.nTopics]*self.nTopics
         for d,w,f in zip(docs,words,freq):# document d with word w, with freq f
-            for ii in range(f):
+            for ii in range(int(f)):
                 z_m_n = np.random.multinomial(1,unif )
                 z_m_n = np.where(z_m_n==1)[0]
 #                print z_m_n
@@ -69,13 +69,13 @@ class ldaTopicModel:
                 cnt += 1
         converged = False
         print topicsInDoc
-        for iiii in range(10):
+        for iiii in range(20):
             print iiii
         #do one round of gibbs sampling
         #update counts
             cnt = 0
             for d,w,f in zip(docs,words,freq):# document d with word w, with freq f
-                for ii in range(f):
+                for ii in range(int(f)):
                     topicsInDoc[d,topicForWord[cnt]]     -= 1
                    #topicsInDoc[d,topicForWord[d][w][ii]]     -= 1
                     wordsInTopic[topicForWord[cnt],w]    -= 1
