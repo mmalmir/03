@@ -39,11 +39,12 @@
 \maketitle
 
 \section{Abstract}
-In this paper, a popular generative model called Latent Dirichlet Allocation (LDA) is used to discover the underlying topics of  a set of documents. Learning topics in documents is an unsupervised learning problem which exploits the frequency of words in documents. Gibbs sampling is used with Harmonic mean as a measure of goodness-of-fit to train the LDA model. We show the results of training the model using classic400 and DailyKOS blog datasets. In both cases, the discovered topics and the distribution of topics in each document are represented. We also show that our model can predict the true label for topics for documents of classic400 dataset with more that 97\% accuracy.
+In this paper, a popular generative model called Latent Dirichlet Allocation (LDA) is used to discover the underlying topics of  a set of documents. Learning topics in documents is an unsupervised learning problem which exploits the frequency of words in documents. Gibbs sampling is used with Harmonic mean as a measure of goodness-of-fit to train the LDA model. We show the results of training the model using classic400 and DailyKOS blog datasets. In both cases, top words in the discovered topics and the distribution of topics in each document are represented. We also show that our model can predict the true label for topics for documents of classic400 dataset with more that 97\% accuracy.
 
 \section{Introduction}
-
-
+\par{Discovering the topics of documents is a well known problem in machine learning. The goal is to represent a document as a distribution over a set of topics. Usually the data comes in form of a huge corpus extracted from blogs or news websites. Because of that, the data comes without any accompanying training labels, meaning there are no sample topic or word distributions. For this unsupervised learning problem, Latent Dirichlet Allocation (LDA) model is proposed that learns the topics within a document along with the distribution of words in each document.}
+\par{For LDA model, the likelihood of data given model can't be expressed in closed form. Because of this, we use Gibbs sampling as a technique to infer the parameters of the model. Gibbs sampling can be very time consuming, specifically because the number of random variables in the model is huge. To make the sampling faster, we use a version of the algorithm called collapsed Gibbs sampling. In this method, some of the random variables in the model are marginalized and sampling is thus required only for a subset of random variables in the model .}
+\par{We train the proposed model with two different datasets, classic400 and DailyKOS blog. Classic400 dataset is small, and is accompanied by true labels for topics in documents. This is a suitable dataset to perform accuracy test on the model. We show that the proposed model with Gibbs sampling learns to predict the topic for each document with more than 97\% accuracy. For both datasets, we look into top words for each learned topic to see if they are logically related. As we see later in this report, the model can discover meaningful topics from unlabeled text corpus.}
 
 \section{Design and Analysis of Algorithm}
 
@@ -92,6 +93,17 @@ p(z_t=j|Z_{-t},W)\propto \frac{q'_{jw_t}+\beta_{w_t}}{\sum_{t'} q'_{jw_{t'}}+\be
 \end{equation}
 where $m$ is the document to which $w_t$ belongs, $q'_{jw_{x}}$ is the number of times word $w_x$ appeared in topic $j$ and $n'_{mj}$ is the number of times topic $j$ was used in document $m$. Also $\alpha_x$ and $\beta_x$ refer the the $x$th element of vectors $\alpha$ and $\beta$ respectively.
 
+In each epoch, we use all of the words in corpus to update topic of that word, and to update probability of $p(z_i=j|\overline{z'},\bar{w})$. So, for each position, Equation 10 is calculated for different topics. Evaluating this probability for each topic (say $j$) requires constant time. Therefor, time complexity of each epoch of Gibbs sampling is $O(NK)$, where $N$ is the total number of words in corpus and $K$ is the number of topics.
+
+where $\overline{n_m}$ is the vector of topic observation counts for document m and $\overline{n_k}$ is the vector of term observation counts for topic k. So we will have:
+\begin{equation}
+\phi_{k,t}=\frac{q_k^{(t)}+\beta_t}{\sum_{t=1}^V q_k^{t}+\beta_t},
+\end{equation}
+\begin{equation}
+\theta_{m,k}=\frac{n_m^{(k)}+\alpha_k}{\sum_{k=1}^K n_m^{k}+\alpha_k}.
+\end{equation}
+
+
 \section{Design of Experiments}
 
 \subsection{Dataset Selection}
@@ -119,7 +131,7 @@ Harmonic mean is proposed as a measure for goodness-of-fit for unsupervised mode
 \begin{equation}
 \frac{1}{M}\sum_{m=1}^{M}(\frac{1}{K}\sum_{k=1}^{K}\theta_{m,k})^{-1}
 \end{equation}
-where $\theta_{m,k}$ is the topic distribution for document m and topic k. If the document distribution has higher probability for only some topics, its associated harmonic mean value would be lower. So, the model could have better ability to separate documents into different topics.
+where $\theta_{m,k}$ is the topic distribution for document m and topic k. If the document distribution has higher probability for only some topics, its associated harmonic mean value would be lower. So, the model could have better ability to separate documents into different topics. In our experiments, we find that Harmonic mean is not a good measure for convergence, since its value converges after the very first few epochs. This is one of the difficulties with Harmonic mean, as it overestimates the goodness of model. This also has been noted before \cite{wallach}.
 
 
 \subsection{Hyperparameters Selection}
@@ -213,7 +225,7 @@ $\alpha=0.1,\beta=0.2$ & $0.96$ \\ \hline
 \section{Discussion}
 In this paper, we described the details of training of an LDA model for document topic modeling. We saw that for an unsupervised learning problem such as topic discovery, LDA can be used to model the documents and its topics. We used Gibbs sampling to train a collapsed version of the model. For two datasets, we saw that our model can predict meaningful topics and discover an sparse representation of documents in topic space. For classic400 dataset, the model predicted the true topic for each document with more that 97\% accuracy.
 
-One of the challenges when doing unsupervised training for model, is to determine the stop criteria. This is the point where the model starts to over-fit the training data. 
+One of the challenges when doing unsupervised training for model, is to determine the stopping criteria. This is the point in training where the model starts to over-fit the training data. We performed experiments with the well known.
 
 \begin{thebibliography}{9}
 \bibitem{fastlda}
@@ -223,6 +235,9 @@ Porteous, Ian, et al. "Fast collapsed gibbs sampling for latent dirichlet alloca
 \bibitem{harmonic}
 Newton, Michael A., and Adrian E. Raftery. "Approximate Bayesian inference with the weighted likelihood bootstrap." Journal of the Royal Statistical Society. Series B (Methodological) (1994): 3-48.
 APA	
+
+\bibitem{wallach}
+Wallach, Hanna M., et al. "Evaluation methods for topic models." Proceedings of the 26th Annual International Conference on Machine Learning. ACM, 2009.
 
 \end{thebibliography}
 
