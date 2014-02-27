@@ -42,9 +42,9 @@
 \section{Design and Analysis of Algorithm}
 
 \subsection{The bag-of-words representation}
-Vocabulary is the collection of words that are used in documents at least once. In text mining, many eliminated from the vocabulary "stop" words. These are some common words in most documents and they are not related to a particular subject or topic. From linguistic point of view, these words are called "function words" as well. They include pronouns (you, he, it) connectives (and, because, however), prepositions (to, of, before), auxiliaries (have, been, can), and generic nouns (amount, part, nothing). 
+A document is a collection of words plus the structure that puts these words together. If we only look at words, we find some words that are not correlated with any topic. These are words that can be found in any document with any topic. Examples of these words are pronouns (you, he, it) connectives (and, because, however), prepositions (to, of, before), auxiliaries (have, been, can), and generic nouns (amount, part, nothing). For the purpose of topic selection, we discard these words from documents as clearly they don't help in picking the right topic. Then we take the union of all words in corpus and call it \emph{dictionary}.
 
-After constructing our vocabulary, we need to find a way to represent our documents. Each document is represented as a vector of length V (length of vocabulary), where each elements of this vector describes number of appearance of a particular word in the document. If this vector is $x$ then its $j^{th}$ element, $x_j$, is the number of appearance of word j from vocabulary in the document. The length of document is $n=\sum_{m}x_j.$
+In order to determine a topic for a document, we need to represent  documents using a set of features. We adapt a representation called \emph{bag of words}, in which each document is represented as a histogram over the dictionary. Let $V$ be the total number of words in dictionary, then each document is represented as a $V$-dimensional vector $x$, where $x[i]$ is the number of times the $i$th word appeared in the document. The length of document is $n=\sum_{m}x_j.$
 \subsection{The multinomial distribution}
 After representing documents, we need to select a model for a set of documents. This model is a probability model, and we want to use maximum likelihood to find the best parameters that best represent our training data. The probability distribution that we use is the multinomial distribution. It could be represented mathematically as:
 
@@ -162,23 +162,26 @@ There are two sets of hyper parameters in our model: $\alpha$ which is the param
 Here, we adapt the same parameter values as \cite{fastlda}: $\alpha \in \{0.01,0.1\}$ and $\beta\in\{2/k,0.2/k\}$. These value make sense since they prefer sparse distributions for $\theta$ and $\phi$. Usually documents contain a few topics, therefore a document is usually a sparse distribution over topics. Also when the dictionary size is large, it makes sense to have a topic that is sparse, i.e. it gives higher probability to a few words. Besides the sparsity, there is no other information we are incorporating in our priors. 
 
 \section{Results}
-\clearpage
+
+
 \subsection{Classic400}
+For classic400 dataset, we 
+
 
 \begin{table}[!]
-\vspace{-2cm}
 \begin{center}
 \begin{tabular}{| c | p{12cm} |}
 \hline
-\textbf{Topic}& \textbf{Words}  \\ \hline
-1&boundary,layer,wing,mach,supersonic,wings,ratio,velocity,schlock, effects,surface,plate,solution,jet,lift,numbers,high,edges,speeds,head\\ \hline
-2&system,scientific,retrieval,research,language,science,journals, methods,systems,subject,library,request,classification,data,problems, field,development,considered,general,structure\\
+\textbf{Topic}& \textbf{Top 20 Words}  \\ \hline
+\textbf{1}&boundary,layer,wing,mach,supersonic,wings,ratio,velocity,schlock, effects,surface,plate,solution,jet,lift,numbers,high,edges,speeds,head\\ \hline
+\textbf{2}&system,scientific,retrieval,research,language,science,journals, methods,systems,subject,library,request,classification,data,problems, field,development,considered,general,structure\\
  \hline
-3&ventricular,fatty,left,nickel,cases,acids,aortic,blood,normal,glucose, spetal,acid,pulmonary,defect, visual,time,clinical,free,ffa\\
+\textbf{3}&ventricular,fatty,left,nickel,cases,acids,aortic,blood,normal,glucose, spetal,acid,pulmonary,defect, visual,time,clinical,free,ffa\\
  \hline
  
 \end{tabular}
-\caption{}\label{table:2}
+\caption{}
+\label{table:2}
 \end{center}
 \end{table}
 
