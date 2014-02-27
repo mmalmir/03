@@ -93,7 +93,7 @@ for i in range(1,4):
             t1[np.where(topics==2)] = k
             rates.append( (t1==trueLabels).mean() )
 print np.max(rates)
-
+print lda.meanHarmonic
 
 
 

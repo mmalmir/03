@@ -77,6 +77,8 @@ class ldaTopicModel:
         #do one round of gibbs sampling
         #update counts
             cnt = 0
+            phi = np.zeros((self.nTopics,dicSize))
+            theta = np.zeros((ndocs,self.nTopics))
             for d,w,f in zip(docs,words,freq):# document d with word w, with freq f
                 for ii in range(int(f)):
                     topicsInDoc[d,topicForWord[cnt]]     -= 1
@@ -97,7 +99,9 @@ class ldaTopicModel:
                     prob = wordsInTopic[:,w]+self.beta[w]
                     prob /= (wordsInTopic + BETA).sum(axis=1)
                     prob *= (topicsInDoc[d,:]+self.alpha)
-                    prob /= topicsInDoc[d,:]+self.alpha
+                    prob /= np.sum(topicsInDoc[d,:]+self.alpha)
+
+                    theta[d,:]=(topicsInDoc[d,:]+self.alpha) / np.sum(topicsInDoc[d,:]+self.alpha)
                         #prob[k]=(wordsInTopic[topicForWord[d][w][ii],w]+self.beta[w])*(topicsInDoc[d,z[d][w][ii]]+self.alpha[d])
 #                        prob[k] /= (totalTopicsInDoc[d]+self.alpha)*(totalWordsInTopic[k])
                     #prob[k]/= (topicsInDoc[d,z[d][w][ii]]+np.sum(self.alpha))*(totalWordsInTopic[topicForWord[d][w][ii]]+np.sum(self.beta))
@@ -118,8 +122,13 @@ class ldaTopicModel:
                     cnt += 1
             #check for convergence
             print topicsInDoc
+        a=np.sum(theta,axis=0)
+        a /= self.nTopics
+        a **= -1
+        self.meanHarmonic = np.sum(a)
 #        print wordsInTopic
         self.topicsInDoc  = topicsInDoc
         self.wordsInTopic = wordsInTopic
+
 
 
