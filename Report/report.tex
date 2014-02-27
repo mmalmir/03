@@ -114,24 +114,12 @@ The experiments on the model described above was done using two datasets: classi
 \label{tableDatasetStats}
 \end{table}
 
-\subsection{Measures for Goodness-of-Fit}
-\subsubsection{Perplexity}
-A very general criterion to analyze overfitting of a clustering model is to use perplexity (????). The reciprocal geometric mean of the likelihood of testing data given the trained model $M={\{\Theta,\Phi\}}$ is defined as perplexity. The lower perplexity value shows that the model could fit the testing data better. Mathematically we could define it as:
-\begin{equation}
-p(\overline{w}|M)=\prod_{m=1}^M p(w_m|M)^{\frac{-1}{N}}=exp - \frac{\sum_{m=1}^Ml og p(w_m|M)}{\sum_{m=1}^M N_m}
-\end{equation}
-and $log p(w_m|M)$ could be derived from the multinomial parameters:
-\begin{equation}
-log p(w_m|M)=\prod_{n=1}^{N_m}(\sum_{k=1}^{K} \phi_{k,t}\theta_{m,k})^{q_m^t}
-\end{equation}
-In these equations, $M$ is number of documents, $N$ is number of all words, $N_m$ is number of words in document $m$, $w_m$ is words in document $m$,$\phi_{k,t}$ is the word distribution for topic $k$ and word $t$, and $\theta_{m,k}$ is the topic distribution for document $m$ and topic $k$.
-
-\subsubsection{Harmonic Mean Method}
-In order to investigate how well the trained model can fit to the training data, we use goodness-of-fit. (?????) Harmonic mean for LDA model in (ref????) is defined as:
+\subsection{Harmonic Mean  as a Measures for Goodness-of-Fit}
+Harmonic mean is proposed as a measure for goodness-of-fit for unsupervised models \cite{harmonic}. Harmonic mean is defined as:
 \begin{equation}
 \frac{1}{M}\sum_{m=1}^{M}(\frac{1}{K}\sum_{k=1}^{K}\theta_{m,k})^{-1}
 \end{equation}
-where $\theta_{m,k}$ is the topic distribution for document m and topic k. If the topic distribution has higher probability for only some topics, its associated harmonic mean value would be lower. So, the model could have better ability to separate documents into different topics.
+where $\theta_{m,k}$ is the topic distribution for document m and topic k. If the document distribution has higher probability for only some topics, its associated harmonic mean value would be lower. So, the model could have better ability to separate documents into different topics.
 
 
 \subsection{Hyperparameters Selection}
@@ -223,11 +211,18 @@ $\alpha=0.1,\beta=0.2$ & $0.96$ \\ \hline
 \subsection{DailyKOS}
 
 \section{Discussion}
+In this paper, we described the details of training of an LDA model for document topic modeling. We saw that for an unsupervised learning problem such as topic discovery, LDA can be used to model the documents and its topics. We used Gibbs sampling to train a collapsed version of the model. For two datasets, we saw that our model can predict meaningful topics and discover an sparse representation of documents in topic space. For classic400 dataset, the model predicted the true topic for each document with more that 97\% accuracy.
 
+One of the challenges when doing unsupervised training for model, is to determine the stop criteria. This is the point where the model starts to over-fit the training data. 
 
 \begin{thebibliography}{9}
 \bibitem{fastlda}
 Porteous, Ian, et al. "Fast collapsed gibbs sampling for latent dirichlet allocation." Proceedings of the 14th ACM SIGKDD international conference on Knowledge discovery and data mining. ACM, 2008.
+
+
+\bibitem{harmonic}
+Newton, Michael A., and Adrian E. Raftery. "Approximate Bayesian inference with the weighted likelihood bootstrap." Journal of the Royal Statistical Society. Series B (Methodological) (1994): 3-48.
+APA	
 
 \end{thebibliography}
 

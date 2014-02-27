@@ -27,7 +27,7 @@ wordlist = np.asarray(wordlist)
 
 ntopics    = 10
 nIter      = 200
-alpha      = 0.1
+alpha      = 0.01
 beta       = .2
 train      = True
 lda        = ldaTopicModel(n_topics = ntopics,alpha= alpha * np.ones(ntopics),

@@ -76,6 +76,9 @@ ax.set_xlabel("Topic 1")
 ax.set_ylabel("Topic 2")
 ax.set_zlabel("Topic 3")
 
+plt.figure(2)
+plt.plot(lda.meanHarmonic)
+
 plt.show()
 
 
