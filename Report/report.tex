@@ -134,8 +134,26 @@ where $q_{kt}$ is the number of times that word $t$ occurs with topic $k$ in the
 
 \section{Design of Experiments}
 
-
 \subsection{Dataset Selection}
+The experiments on the model described above was done using two datasets: classic400 and dailyKOS. Table \ref{tableDatasetStats} display the number of documents, words and total number of words in these datasets. Classic400 is a small dataset, and the fact that it is accompanied by true labels makes it appealing for experiments. DailyKOS on the other hand is a larger dataset, and though it doesn't have the true labels, its large number of documents and total number of words makes it a good test to the performance of the proposed model. 
+
+
+\begin{table}
+\vspace{-2cm}
+\center
+\begin{tabular}{|c|c|c|}
+\hline
+ & \textbf{Classic400} & \textbf{DailyKOS} \\
+ \hline
+\textbf{ number of Documents} & 400 & 3430 \\
+\textbf{ Dictionary Size} & 6205 & 6906 \\
+\textbf{ Total Number of Words} & 31516 & 467714\\
+ \hline
+\end{tabular}
+\caption{Statistics of classic400 and DailyKOS datasets.}
+\label{tableDatasetStats}
+\end{table}
+
 
 \subsection{Hyperparameters Selection}
 
