@@ -29,11 +29,11 @@ for line in f:
 f.close()
 wordlist = np.asarray(wordlist)
 
-ntopics    = 30
-nIter      = 100
+ntopics    = 20
+nIter      = 300
 alpha      = 0.01
 beta       = .2
-train      = True
+train      = False
 lda        = ldaTopicModel(n_topics = ntopics,alpha= alpha * np.ones(ntopics),
                                         beta=beta*np.ones(nWords),
                                         nIter=nIter)
@@ -54,14 +54,16 @@ f.close()
 
 nwrd = 20
 idx = np.argsort(-lda.wordsInTopic)
+print idx
 for i in range(ntopics):
     print "topic %d:"%i
     print wordlist[idx[i,:nwrd]],"\n"
 
 print "visualizing..."
 print lda.meanHarmonic
-#theta = lda.topicsInDoc
-#theta = theta / np.tile(theta.sum(axis=1).reshape([-1,1]),[1,ntopics])
+
+theta = lda.topicsInDoc
+theta = theta / np.tile(theta.sum(axis=1).reshape([-1,1]),[1,ntopics])
 
 
 #seed = np.random.RandomState(seed=3)
@@ -72,12 +74,13 @@ print lda.meanHarmonic
 #                    random_state=seed, n_jobs=1,n_init=1)
 #theta = nmds.fit_transform(theta, init=pos)
 
-#theta = PCA(n_components=3).fit_transform(theta)
-#theta = theta / np.tile(theta.sum(axis=1).reshape([-1,1]),[1,3])
+theta = PCA(n_components=3).fit_transform(theta)
+theta = theta / np.tile(theta.sum(axis=1).reshape([-1,1]),[1,3])
 #
-#fig = plt.figure()
+fig = plt.figure()
 #ax = fig.add_subplot(111, projection='3d')
-#ax.scatter(theta[:,0], theta[:,1], theta[:,2], c='r',label='True label=1')
+ax = Axes3D(fig)
+ax.scatter(theta[:,0], theta[:,1], theta[:,2], c='r',label='True label=1')
 
 #handles, labels = ax.get_legend_handles_labels()
 #ax.legend()
@@ -89,7 +92,7 @@ print lda.meanHarmonic
 #ax.set_ylabel("Topic 2")
 #ax.set_zlabel("Topic 3")
 #
-#plt.show()
+plt.show()
 
 
 #calculate the percent correct

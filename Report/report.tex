@@ -262,6 +262,9 @@ $\alpha=0.1,\beta=0.2$ & $0.96$ \\ \hline
 
 \subsection{DailyKOS}
 The number of documents and words in this dataset are given in table \ref{tableDatasetStats}. These are  documents mainly with political theme, however we also found rare occurrences of words such as \emph{sport}. Training on this document is a challenge of the large number of words and wide range of topics. The large number of words and topics results in slow training. Also the large number of topics makes discovery of rare topics hard for LDA. We train the model with different number of epochs ranging from 10 to 300 and number of topics ranging from 3 to 20. Table \ref{tableDKTopWords} shows the 
+top words for a model trained with 20 topics and 300 epochs. These words make sense, for example topic 1 is about military , topic 2 is about crime and topic 3 is about weather.
+
+We also try to plot the documents in 3D space, similar to figure \ref{figClassicDist}. However since the number of topics for this model is large, we have to reduce the dimensions for visualization. We used PCA and non-metric MDS for dimension reduction, however the documents in the plots were not well separated. That is because projection to lower dimension looses the sparseness of the documents.
 
 
 
@@ -271,13 +274,34 @@ The number of documents and words in this dataset are given in table \ref{tableD
 \hline
 \textbf{Topic}& \textbf{Top 20 Words}  \\ \hline
 \textbf{1}&bush, iraq, war, president, administration, kerry, bushs, people, time, draft, united, general, vote, media, years, americans, nation, states, military, nations\\ \hline
-\textbf{2}&boundary,layer,wing,mach,supersonic,wings,velocity,ratio,shock, effects,surface,plate,lift,jet,numbers,solution,edge,high,speeds,heat\\
+\textbf{2}& ban, assault, gun, weapons, law, canadians, laws, support, disagree, drug, fear, unsure, pass, groups, federal, expire, claims, crime, license, stated
+\\
  \hline
-\textbf{3}&patients,ventricular,fatty,left,nickel,acids,cases,aortic,blood,glucose, normal,septal,visual,acid,pulmonary,defect,time,clinical,ffa, regurgitation\\
+\textbf{3}&summer, south, freedom, years, janklow, air, america, radio, time, june, numbers, fahrenheit, registered, white, mississippi, vance, fec, driving, april, meteor\\
+ \hline
+
+\textbf{4}&november, poll, senate, republicans, bush, electoral, polls, account, governor, house, democratic, voting, challengers, election, democrats, primary, kerry, voter, vote, economy
+\\
+ \hline
+
+\textbf{5} &  bulb, cohen, reagan, energy, dkos, majette, weve,
+ burt, hampshire, electricity, lightbulb, chandler,
+ reynolds, impact, vision, important, kerr, space,
+ real, endorsement
+\\
+ \hline
+
+\textbf{6} &  brokaw, islam, islamic, democratic, sharpton,
+ candidates, policy, posting, apparently, youre, nation,
+ break, difference, exchange, philip, applause, morris,
+ cbs, laughter, smoking
+\\
  \hline
  
+ 
+ 
 \end{tabular}
-\caption{Top 20 words for topics in DailyKOS dataset.}
+\caption{Top 20 words for 6 randomly selected topics in DailyKOS dataset.}
 \label{tableDKTopWords}
 \end{center}
 \end{table}
@@ -288,7 +312,10 @@ In this paper, we described the details of training of an LDA model for document
 
 One of the challenges when doing unsupervised training for model, is to determine the stopping criteria. This is the point in training where the model starts to over-fit the training data. We saw that Harmonic mean can't provide much information about the convergence because it converges very fast. In our experiments, we found that Gibbs sampling in the first few epochs do not provide any structure on the topic distribution in documents. Therefore, we let the Gibbs sampling run for 500 epochs.  
 
-Because of the nature of problem, that deals with huge datasets the algorithm is slow. In order to improve its speed many other algorithms are proposed. In conventional Gibbs sampling methods (as we implemented) for LDA require $O(K)$ operations per sample where $K$ is the number of topics in the model. \cite{fastlda} uses the same number of samples in the corpus, while using on average much less than K operations per sample. It is observed that the sampling distributions are frequently skewed such that most of the probability distribution is concentrated on a small fraction of the total number of topics K. This allows us to order the sampling operations such that on average only a fraction of the K topic probabilities need to be calculated. This algorithm is exact, and no approximation is made.
+For DailyKOS dataset, we were dealing with a large number of words and topics. We discovered that training with small number of topics for this dataset results in mixed topics that are not separated. So we performed the training with large number of topics and the model discovered meaningful and well-separated topics. In order to get better results, we have to increase the number of epochs which leads to slower training. For this reason, we selected a random sub sample of documents in this dataset in order to perform training in reasonable time. Despite sampling, the model learned meaningful topics of words.
+
+
+Because of the nature of problem, that deals with huge datasets, the algorithm is slow. In order to improve the speed, many algorithms have been proposed. In conventional Gibbs sampling methods (such as the one implemented here), training LDA require $O(K)$ per sample where $K$ is the number of topics. Reference \cite{fastlda} proposes a method which requires less than $K$ operations for each round of sampling. This method is based on the observation that the sampling distributions are frequently skewed such that most of the probability distribution is concentrated on a small fraction of the total number of topics $K$. This allows to order the sampling operations such that on average only a fraction of the $K$ topic probabilities need to be calculated.
 
 \begin{thebibliography}{9}
 \bibitem{fastlda}
