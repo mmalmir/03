@@ -73,8 +73,6 @@ class ldaTopicModel:
             theta = np.zeros((ndocs,self.nTopics))
             for d,w,f in zip(docs,words,freq):# document d with word w, with freq f
                 for ii in range(int(f)):
-                    if np.random.binomial(1,0.5)==1:
-                        continue
                     topicsInDoc[d,topicForWord[cnt]]     -= 1
                    #topicsInDoc[d,topicForWord[d][w][ii]]     -= 1
                     wordsInTopic[topicForWord[cnt],w]    -= 1
