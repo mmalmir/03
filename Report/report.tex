@@ -143,7 +143,7 @@ return parameter set $\Theta$ according to Equation 9\\
 Algorithm~\ref{algorithm} describes the pseudocode for our implementation. In the above, $n_{mk}$ counts the number of words topic $k$ appeared in document $m$ and $q_{kw_t}$ represents the number of times word $w_t$ assigned to topic $k$. $K$ is the total number of topics and $M$ is the total number of documents. In order to make the algorithm faster, we keep track of the total number of topics in each document ($n_m$) and total number of words assigned to each topic ($q_k$). Note that in (7), $q_k = \sum_{t'} q'_{jw_{t'}} + \beta_{t'}$, and $n_m = \sum_k n'_{mk}+\alpha_k$. By updating these values, the moms inner instruction in our algorithm (line 17) can be evaluated faster. After convergence, we calculate the model parameters $\Phi$ and $\Theta$ using (8) and (9).
 
 
-To evaluate convergence, we first calculated Harmonic mean (which requires calculation of (9) in each iteration of Gibbs sampling). However, we found it not useful, since its value converged after the first few epochs. Because of the nature of unsupervised learning, it is hard to find a reliable measure for convergence. Therefore we trained the model with number of epochs ranging from 10 to 500 and found that the largest number of iterations gives the best results in terms of recognition for true labels in classic400 dataset. Therefore we use 500 number of epochs as the only stopping critertia.
+To evaluate convergence, we first calculated Harmonic mean (which requires calculation of (9) in each iteration of Gibbs sampling). However, we found it not useful, since its value converged after the first few epochs. Because of the nature of unsupervised learning, it is hard to find a reliable measure for convergence. Therefore we trained the model with number of epochs ranging from 10 to 500 and found that the largest number of iterations gives the best results in terms of recognition for true labels in classic400 dataset. Therefore we use 500 number of epochs as the only stopping criteria.
 \section{Design of Experiments}
 
 \subsection{Dataset Selection}
@@ -220,7 +220,7 @@ $\alpha=0.1,\beta=0.2$ & $0.96$ \\ \hline
  \hline
  
 \end{tabular}
-\caption{}
+\caption{Top 20 words for 3 topics for Classic400 dataset. }
 \label{tableTopWordsClassic}
 \end{center}
 \end{table}
@@ -261,7 +261,26 @@ $\alpha=0.1,\beta=0.2$ & $0.96$ \\ \hline
 
 
 \subsection{DailyKOS}
-This is a dataset 
+The number of documents and words in this dataset are given in table \ref{tableDatasetStats}. These are  documents mainly with political theme, however we also found rare occurrences of words such as \emph{sport}. Training on this document is a challenge of the large number of words and wide range of topics. The large number of words and topics results in slow training. Also the large number of topics makes discovery of rare topics hard for LDA. We train the model with different number of epochs ranging from 10 to 300 and number of topics ranging from 3 to 20. Table \ref{tableDKTopWords} shows the 
+
+
+
+\begin{table}[!]
+\begin{center}
+\begin{tabular}{| c | p{12cm} |}
+\hline
+\textbf{Topic}& \textbf{Top 20 Words}  \\ \hline
+\textbf{1}&bush, iraq, war, president, administration, kerry, bushs, people, time, draft, united, general, vote, media, years, americans, nation, states, military, nations\\ \hline
+\textbf{2}&boundary,layer,wing,mach,supersonic,wings,velocity,ratio,shock, effects,surface,plate,lift,jet,numbers,solution,edge,high,speeds,heat\\
+ \hline
+\textbf{3}&patients,ventricular,fatty,left,nickel,acids,cases,aortic,blood,glucose, normal,septal,visual,acid,pulmonary,defect,time,clinical,ffa, regurgitation\\
+ \hline
+ 
+\end{tabular}
+\caption{Top 20 words for topics in DailyKOS dataset.}
+\label{tableDKTopWords}
+\end{center}
+\end{table}
 
 
 \section{Discussion}
