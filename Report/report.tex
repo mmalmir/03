@@ -108,6 +108,25 @@ The experiments on the model described above was done using two datasets: classi
 \label{tableDatasetStats}
 \end{table}
 
+\subsection{Analyzing topic models}
+\subsubsection{Perplexity}
+A very general criterion to analyze overfitting of a clustering model is to use perplexity (????). The reciprocal geometric mean of the likelihood of testing data given the trained model $M={\{\Theta,\Phi\}}$ is defined as perplexity. The lower perplexity value shows that the model could fit the testing data better. Mathematically we could define it as:
+\begin{equation}
+p(\overline{w}|M)=\prod_{m=1}^M p(w_m|M)^{\frac{-1}{N}}=exp - \frac{\sum_{m=1}^Ml og p(w_m|M)}{\sum_{m=1}^M N_m}
+\end{equation}
+and $log p(w_m|M)$ could be derived from the multinomial parameters:
+\begin{equation}
+log p(w_m|M)=\prod_{n=1}^{N_m}(\sum_{k=1}^{K} \phi_{k,t}\theta_{m,k})^{q_m^t}
+\end{equation}
+In these equations, $M$ is number of documents, $N$ is number of all words, $N_m$ is number of words in document $m$, $w_m$ is words in document $m$,$\phi_{k,t}$ is the word distribution for topic $k$ and word $t$, and $\theta_{m,k}$ is the topic distribution for document $m$ and topic $k$.
+
+\subsubsection{Harmonic Mean Method}
+In order to investigate how well the trained model can fit to the training data, we use goodness-of-fit. (?????) Harmonic mean for LDA model in (ref????) is defined as:
+\begin{equation}
+\frac{1}{M}\sum_{m=1}^{M}(\frac{1}{K}\sum_{k=1}^{K}\theta_{m,k})^{-1}
+\end{equation}
+where $\theta_{m,k}$ is the topic distribution for document m and topic k. If the topic distribution has higher probability for only some topics, its associated harmonic mean value would be lower. So, the model could have better ability to separate documents into different topics.
+
 
 \subsection{Hyperparameters Selection}
 There are two sets of hyper parameters in our model: $\alpha$ which is the parameters of the Dircihlet prior over documents and $\beta$ which is the vector of parameters for Dirichlet prior over topics. One way to select these parameters is to use expert knowledge in determining these parameters. In this case, the expert can give an estimate of the distribution of topics inside documents or distribution of words for different topics. Despite enriching the model, this method seems infeasible for us since we have no source of expertise in this area. Another way is to use an uninformative uniform prior, which acts as psuedo-counts to prevent technical difficulties.\\
