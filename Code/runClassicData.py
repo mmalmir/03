@@ -15,11 +15,17 @@ wordFreq   = classic["classic400"]
 trueLabels = classic["truelabels"][0]
 nWords     = 6205
 wordFreq   = wordFreq.toarray()
-lda        = ldaTopicModel(n_topics = 3,alpha= (0.1) * np.ones(3),
-                                        beta=2.*np.ones(nWords))
+
+
+nIter      = 50
+alpha      = 0.1
+beta       = 2.
+lda        = ldaTopicModel(n_topics = 3,alpha= alpha * np.ones(3),
+                                        beta=beta*np.ones(nWords),
+                                        nIter=nIter)
 X          = wordFreq
 
-fname = "lda400_alpha.1_beta2.pickle"
+fname = "lda400_alpha%0.3f_beta%0.3f_iter%d.pickle"%(alpha,beta,nIter)
 
 lda.fit(X)
 

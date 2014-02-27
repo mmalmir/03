@@ -23,6 +23,8 @@ class ldaTopicModel:
                 self.beta  = kwrds[k]
             elif k=="alpha":
                 self.alpha = kwrds[k]
+            elif k=="nIter":
+                self.nIter = kwrds[k]
 
 
 
@@ -69,7 +71,7 @@ class ldaTopicModel:
                 cnt += 1
         converged = False
         print topicsInDoc
-        for iiii in range(20):
+        for iiii in range(self.nIter):
             print iiii
         #do one round of gibbs sampling
         #update counts
