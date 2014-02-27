@@ -17,9 +17,10 @@ nWords     = 6205
 wordFreq   = wordFreq.toarray()
 
 
-nIter      = 50
-alpha      = 0.1
+nIter      = 200
+alpha      = 0.01
 beta       = 2.
+train      = True
 lda        = ldaTopicModel(n_topics = 3,alpha= alpha * np.ones(3),
                                         beta=beta*np.ones(nWords),
                                         nIter=nIter)
@@ -27,11 +28,13 @@ X          = wordFreq
 
 fname = "lda400_alpha%0.3f_beta%0.3f_iter%d.pickle"%(alpha,beta,nIter)
 
-lda.fit(X)
+fname = "lda400_alpha.1_beta2_200itr.pickle"
 
-f = open(fname,"wb")
-pickle.dump(lda,f)
-f.close()
+if train:
+    lda.fit(X)
+    f = open(fname,"wb")
+    pickle.dump(lda,f)
+    f.close()
 
 f = open(fname,"rb")
 lda = pickle.load(f)
