@@ -269,6 +269,8 @@ In this paper, we described the details of training of an LDA model for document
 
 One of the challenges when doing unsupervised training for model, is to determine the stopping criteria. This is the point in training where the model starts to over-fit the training data. We saw that Harmonic mean can't provide much information about the convergence because it converges very fast. In our experiments, we found that Gibbs sampling in the first few epochs do not provide any structure on the topic distribution in documents. Therefore, we let the Gibbs sampling run for 500 epochs.  
 
+Because of the nature of problem, that deals with huge datasets the algorithm is slow. In order to improve its speed many other algorithms are proposed. In conventional Gibbs sampling methods (as we implemented) for LDA require $O(K)$ operations per sample where $K$ is the number of topics in the model. \cite{fastlda} uses the same number of samples in the corpus, while using on average much less than K operations per sample. It is observed that the sampling distributions are frequently skewed such that most of the probability distribution is concentrated on a small fraction of the total number of topics K. This allows us to order the sampling operations such that on average only a fraction of the K topic probabilities need to be calculated. This algorithm is exact, and no approximation is made.
+
 \begin{thebibliography}{9}
 \bibitem{fastlda}
 Porteous, Ian, et al. "Fast collapsed gibbs sampling for latent dirichlet allocation." Proceedings of the 14th ACM SIGKDD international conference on Knowledge discovery and data mining. ACM, 2008.
