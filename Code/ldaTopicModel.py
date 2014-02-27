@@ -121,6 +121,7 @@ class ldaTopicModel:
 #        print wordsInTopic
         self.topicsInDoc  = topicsInDoc
         self.wordsInTopic = wordsInTopic
+        self.topicForWord = topicForWord
 
 
 
