@@ -156,6 +156,8 @@ The experiments on the model described above was done using two datasets: classi
 
 
 \subsection{Hyperparameters Selection}
+There are two sets of hyper parameters in our model: $\alpha$ which is the parameters of the Dircihlet prior over documents and $\beta$ which is the vector of parameters for Dirichlet prior over topics. One way to select these parameters is to use expert knowledge in determining these parameters. In this case, the expert can give an estimate of the distribution of topics inside documents or distribution of words for different topics. Despite enriching the model, this method seems infeasible for us since we have no source of expertise in this area. Another way is to use an uninformative uniform prior, which acts as psuedo-counts to prevent technical difficulties.\\
+Here, we adapt the same parameter values as \cite{fastlda}: $\alpha = 2/K$ and $\beta=0.01$. These value make sense since they prefer sparse distributions for $\theta$ and $\phi$. Usually documents contain a few topics, therefore a document is usually a sparse distribution over topics. Also when the dictionary size is large, it makes sense to have a topic that is sparse, i.e. it gives higher probability to a few words. Besides the sparsity, there is no other information we are incorporating in our priors. 
 
 \section{Results}
 
@@ -167,7 +169,8 @@ The experiments on the model described above was done using two datasets: classi
 
 
 \begin{thebibliography}{9}
-
+\bibitem{fastlda}
+Porteous, Ian, et al. "Fast collapsed gibbs sampling for latent dirichlet allocation." Proceedings of the 14th ACM SIGKDD international conference on Knowledge discovery and data mining. ACM, 2008.
 
 \end{thebibliography}
 
