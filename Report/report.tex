@@ -190,7 +190,7 @@ Here, we adapt the same parameter values as \cite{fastlda}: $\alpha \in \{0.01,0
 
 
 \subsection{Classic400}
-We train 4 models on classic400 dataset using prior values mentioned before. Table \ref{tableClssicRecognition} shows the recognition rate for predicting the correct topic for documents in this dataset. For each document, we pick the topic with maximum probability as predicted topic for that document. Then all mappings from the predicted topics to the real topics are investigated. The results shown in table \ref{tableClassicRecognition} represent the best results found on this mapping. These rates indicate that the proposed model fits the data very well.
+We train 4 models on classic400 dataset using prior values mentioned before. Table \ref{tableClssicRecognition} shows the recognition rate for predicting the correct topic for documents in this dataset. For each document, we pick the topic with maximum probability as predicted topic for that document. Then all mappings from the predicted topics to the real topics are investigated. The results shown in table \ref{tableClssicRecognition} represent the best results found on this mapping. These rates indicate that the proposed model fits the data very well.
 
 One should also note the effect of hyper parameters on recognition rates. Among four different values, the model with the lowest recognition rate is the for which the prior parameters enforce the least amount of sparsity of documents and topics. In our experiments, we tried less sparse values, eg. $\beta=10$, but the recognition rates were not good and the resulting topic distributions were a mix of different topics with no observable preference for a specific topic.
 
