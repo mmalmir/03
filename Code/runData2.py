@@ -36,6 +36,11 @@ lda        = ldaTopicModel(n_topics = ntopics,alpha= alpha * np.ones(ntopics),
 
 fname = "uci_alpha%0.3f_beta%0.3f_iter%d.pickle"%(alpha,beta,nIter)
 
+f = open(fname,"rb")
+lda = pickle.load(f)
+f.close()
+
+
 if train:
     lda.fit(X)
     f = open(fname,"wb")
