@@ -18,7 +18,7 @@ nWords     = 6205
 wordFreq   = wordFreq.toarray()
 
 
-nIter      = 500
+nIter      = 10
 alpha      = 0.1
 beta       = .2
 train      = True
@@ -94,7 +94,7 @@ for i in range(1,4):
             t1[np.where(topics==2)] = k
             rates.append( (t1==trueLabels).mean() )
 print np.max(rates)
-
+print lda.meanHarmonic
 
 
 
