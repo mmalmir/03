@@ -29,11 +29,11 @@
 \newcommand{\argmin}{\arg\!\max}
 \begin{document}
 
-\title{Latent Dirichlet Allocation for Document Topic Discovery\\  Learning Algorithms, Project 3}
+\title{Parameter estimation for text analysis\\  Learning Algorithms, Project 3}
 \author{Mohsen Malmir, Erfan Sayyari}
 \maketitle
 \section{Abstract}
-In this paper, a popular generative model called Latent Dirichlet Allocation (LDA) is used to discover the underlying topics of  a set of documents. Learning topics in documents is an unsupervised learning problem which exploits the frequency of words in documents. Gibbs sampling is used with Harmonic mean as a measure of goodness-of-fit to train the LDA model. We show the results of training the model using classic400 and DailyKOS blog datasets. In both cases, the discovered topics and the distribution of topics in each document are represented. We also show that our model can predict the true label for topics for documents of classic400 dataset with more that 97\% accuracy.
+
 
 \section{Introduction}
 
@@ -89,7 +89,7 @@ where $m$ is the document to which $w_t$ belongs, $q'_{jw_{x}}$ is the number of
 \section{Design of Experiments}
 
 \subsection{Dataset Selection}
-The experiments on the model described above was done using two datasets: classic400 and dailyKOS. Table \ref{tableDatasetStats} display the number of documents, words and total number of words in these datasets. Classic400 is a small dataset, and the fact that it is accompanied by true labels makes it appealing for experiments. DailyKOS on the other hand is a larger dataset, and though it doesn't have the true labels, its large number of documents and total number of words makes it a good test to the performance of the proposed model. 
+The experiments on the model described above was done using two datasets: classic400 and dailyKOS. Table \ref{tableDatasetStats} displays the number of documents, words and total number of words in these datasets. Classic400 is a small dataset, and the fact that it is accompanied by true labels makes it appealing for experiments. DailyKOS on the other hand is a larger dataset, and though it doesn't have the true labels, its large number of documents and total number of words makes it a good test to the performance of the proposed model. 
 
 
 \begin{table}
@@ -108,7 +108,7 @@ The experiments on the model described above was done using two datasets: classi
 \label{tableDatasetStats}
 \end{table}
 
-\subsection{Measures for Goodness-of-Fit}
+\subsection{Analyzing topic models}
 \subsubsection{Perplexity}
 A very general criterion to analyze overfitting of a clustering model is to use perplexity (????). The reciprocal geometric mean of the likelihood of testing data given the trained model $M={\{\Theta,\Phi\}}$ is defined as perplexity. The lower perplexity value shows that the model could fit the testing data better. Mathematically we could define it as:
 \begin{equation}
@@ -130,7 +130,7 @@ where $\theta_{m,k}$ is the topic distribution for document m and topic k. If th
 
 \subsection{Hyperparameters Selection}
 There are two sets of hyper parameters in our model: $\alpha$ which is the parameters of the Dircihlet prior over documents and $\beta$ which is the vector of parameters for Dirichlet prior over topics. One way to select these parameters is to use expert knowledge in determining these parameters. In this case, the expert can give an estimate of the distribution of topics inside documents or distribution of words for different topics. Despite enriching the model, this method seems infeasible for us since we have no source of expertise in this area. Another way is to use an uninformative uniform prior, which acts as psuedo-counts to prevent technical difficulties.\\
-Here, we adapt the same parameter values as \cite{fastlda}: $\alpha \in \{0.01,0.1\}$ and $\beta\in\{2/k,0.2/k\}$. These value make sense since they prefer sparse distributions for $\theta$ and $\phi$. Usually documents contain a few topics, therefore a document is usually a sparse distribution over topics. Also when the dictionary size is large, it makes sense to have a topic that is sparse, i.e. it gives higher probability to a few words. Besides the sparsity, there is no other information we are incorporating in our priors. 
+Here, we adapt the same parameter values as \cite{fastlda}: $\alpha \in \{0.01,0.1\}$ and $\beta\in\{2/k,0.2/k\}$. These values make sense since they prefer sparse distributions for $\theta$ and $\phi$. Usually documents contain a few topics, therefore a document is usually a sparse distribution over topics. Also when the dictionary size is large, it makes sense to have a topic that is sparse, i.e. it gives higher probability to a few words. Beside the sparsity, there is no other information we are incorporating in our priors. 
 
 \section{Results}
 
@@ -144,10 +144,10 @@ For classic400 dataset, we
 \begin{tabular}{| c | p{12cm} |}
 \hline
 \textbf{Topic}& \textbf{Top 20 Words}  \\ \hline
-\textbf{1}&system,scientific,retrieval,research,language,science,journals, methods,systems,subject,problems,requests,library,classification,data, organization,general,development,publications,considered\\ \hline
-\textbf{2}&boundary,layer,wing,mach,supersonic,wings,velocity,ratio,shock, effects,surface,plate,lift,jet,numbers,solution,edge,high,speeds,heat\\
+\textbf{1}&boundary,layer,wing,mach,supersonic,wings,ratio,velocity,schlock, effects,surface,plate,solution,jet,lift,numbers,high,edges,speeds,head\\ \hline
+\textbf{2}&system,scientific,retrieval,research,language,science,journals, methods,systems,subject,library,request,classification,data,problems, field,development,considered,general,structure\\
  \hline
-\textbf{3}&patients,ventricular,fatty,left,nickel,acids,cases,aortic,blood,glucose, normal,septal,visual,acid,pulmonary,defect,time,clinical,ffa, regurgitation\\
+\textbf{3}&ventricular,fatty,left,nickel,cases,acids,aortic,blood,normal,glucose, spetal,acid,pulmonary,defect, visual,time,clinical,free,ffa\\
  \hline
  
 \end{tabular}
