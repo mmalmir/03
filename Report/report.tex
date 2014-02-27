@@ -48,7 +48,7 @@ In this paper, a popular generative model called Latent Dirichlet Allocation (LD
 
 \section{Design and Analysis of Algorithm}
 
-\subsection{The bag-of-words representation}
+\subsection{The bag-of-words representation for Documents}
 A document is a collection of words and the structure that puts these words together. If we only look at words, we find some words that are not correlated with any topic. These are words that can be found in any document with any topic. Examples of these words are pronouns (you, he, it) connectives (and, because, however), prepositions (to, of, before), auxiliaries (have, been, can), and generic nouns (amount, part, nothing). For the purpose of topic selection, we discard these words from documents as clearly they don't help in picking the right topic. Then we take the union of all words in corpus and call it \emph{dictionary}.
 
 In order to determine a topic for a document, we have to represent  documents using a set of features. We adapt a representation called \emph{bag of words}, in which each document is represented as a histogram over the dictionary. Let $V$ be the total number of words in the dictionary, then each document is represented as a $V$-dimensional vector $x$, where $x[i]$ is the number of times the $i$th word appeared in the document. We can calculate the length of the document as $n=\sum_{m}x_j.$
@@ -89,19 +89,67 @@ p(z_t|Z_{-t},W)=\frac{p(Z,W)}{P(Z_{-t},W)}=\frac{p(W|Z)p(Z)}{p(w_t|Z_{-t})p(W_{-
 \end{align}
 In the lectures, it was shown that,
 \begin{equation}
+\label{eqZLikelihood}
 p(z_t=j|Z_{-t},W)\propto \frac{q'_{jw_t}+\beta_{w_t}}{\sum_{t'} q'_{jw_{t'}}+\beta_{t'}}\frac{n'_{mj}+\alpha_j}{\sum_k n'_{mk}+\alpha_k}.
 \end{equation}
 where $m$ is the document to which $w_t$ belongs, $q'_{jw_{x}}$ is the number of times word $w_x$ appeared in topic $j$ and $n'_{mj}$ is the number of times topic $j$ was used in document $m$. Also $\alpha_x$ and $\beta_x$ refer the the $x$th element of vectors $\alpha$ and $\beta$ respectively.
 
-In each epoch, we use all of the words in corpus to update topic of that word, and to update probability of $p(z_i=j|\overline{z'},\bar{w})$. So, for each position, Equation 10 is calculated for different topics. Evaluating this probability for each topic (say $j$) requires constant time. Therefor, time complexity of each epoch of Gibbs sampling is $O(NK)$, where $N$ is the total number of words in corpus and $K$ is the number of topics.
+After training is complete, we can calculate the probability of word $w$ under topic $k$ by,
+\begin{equation}
+\phi_{k,w}=\frac{q_{k,w}+\beta_{w}}{\sum_{w'} q_{kw'}+\beta_{w'}}
+\end{equation}
+ and the probability of topic $k$ in document $m$ using the following equation:
+\begin{equation}
+\theta_{m,k}=\frac{n_{mk}+\alpha_k}{\sum_{k'=1}^K n_{mk'}+\alpha_{k'}}.
+\end{equation}
 
-where $\overline{n_m}$ is the vector of topic observation counts for document m and $\overline{n_k}$ is the vector of term observation counts for topic k. So we will have:
-\begin{equation}
-\phi_{k,t}=\frac{q_k^{(t)}+\beta_t}{\sum_{t=1}^V q_k^{t}+\beta_t},
-\end{equation}
-\begin{equation}
-\theta_{m,k}=\frac{n_m^{(k)}+\alpha_k}{\sum_{k=1}^K n_m^{k}+\alpha_k}.
-\end{equation}
+
+In each epoch we update the topic for all words by sampling from (\ref{eqZLikelihood}). In later sections in the details of implementation, we see that we can calculate (\ref{eqZLikelihood}) in constant time for each $z_t$. Therefor, time complexity of each epoch for Gibbs sampling is $O(NK)$, where $N$ is the total number of words in corpus and $K$ is the number of topics.
+
+
+\subsection{Details of implementation}
+\begin{algorithm}[h!]
+\# initialization\;
+ zero all count variables, $n_{m,k}$, $n_m$, $q_k^{(t)}$, $q_k$ \\
+\For{all documents  $m\in{[1,M]}$}{
+\For{all words $n \in{[1,N_m]}$ in document $m$}{
+ 	sample topic index $z_{m,n}=k\sim{Mult(\frac{1}{K})}$\\
+	 increment document-topic count: $n_m^{(k)+1}$\\
+	 increment document-topic sum: $n_m+1$\\
+	 increment topic-term count: $q_k^{(t)}+1$\\
+ 	increment topic-term sum: $q_k+1$\\
+}
+}
+\#Gibbs sampling\;
+\While{not converged}{
+	\For{all documents  $m\in{[1,M]}$}{
+		\For{all words $n \in{[1,N_m]}$ in document $m$}{
+\#for the current assignment of $k$ to a term $t$ for word $w_{m,n}$:\\
+decrement counts and sums: $n_m^{(k)}-1,n_m-1,q_k^{(t)}-1,q_k-1$\\
+\#multinomial sampling acc. to Equation 7:\\
+sample topic index $\overline{k}\sim{p(z_i|,Z_{-i},W)}$\\
+\#use the new assignment of $z_{m,n}$ to the term $t$ for word $w_{m,n}$ to:\\
+increment counts and sums: $n_m^{(k)}+1,n_m+1,q_k^{(t)}+1,q_k+1$\\
+	}
+		}
+\#check convergence and return multinomial parameters;\ \\
+	\If{converged and $L$ iterations}{
+return parameter set $\Phi$ according to Equation 8\\
+return parameter set $\Theta$ according to Equation 9\\
+	}
+}
+
+\caption{Gibbs sampling algorithm for latent Dirichlet allocation}
+\label{algorithm}
+\end{algorithm}
+
+Algorithm~\ref{algorithm} describes a pseudocode that represents our implementation. Firstly, we initialize 4 different vectors that count number of each topic $k$ in document $m$ ($n_m^{(k)}$ with size $K\times M$. $K$ is the number of topics and $M$ is the number of documents.), total number of topics in document number $m$ ($n_m$ with length M, total number of documents), number of topics associated with term $t$ ($q_k^{(t)}$ with size $K\times V$, where $K$ is the total number of topics and $V$ is dictionary size), and the total occurrence of topic $k$ in the whole corpus ($q_k$ with length $K$, number of topics). Afterwards, we associate randomly selected topic indexes for each word in corpus according to $Mult(\frac{1}{K})$, where $Mult$ shows multinomial distribution. 
+
+After initialization, we start Gibbs sampling. In order to assure convergence we set the number of iterations to be large enough. We consider different number of iterations, and for dataset Classic400 in order to give the best accuracy based on the maximum probable topic of each document, number of iterations equal to 500 is the best. 
+
+In each epoch, we consider one document (say $m$) and word $n$ in this topic. We discard it from the corpus, and decrement the associated counts. Then we sample a topic from the multinomial distribution according to the the posterior probability of $p(z_i|Z_{-i},W)$, where $Z_{-i}$ indicates that the whole set of topic labels except topic label number $i$, and $W$ indicates the total set of words. Then we use the new assignment of $z_{m,n}$ to term $t$ for word $w_{m,n}$ to update associated counts ( $n_m^{(k)}+1,n_m+1,q_k^{(t)}+1,q_k+1$). 
+
+After convergence according to large number of iteration, we return the parameter sets $\Phi$ and $\Theta$ according to Equation 8 and Equation 9.
 
 
 \section{Design of Experiments}
@@ -221,11 +269,13 @@ $\alpha=0.1,\beta=0.2$ & $0.96$ \\ \hline
 
 
 \subsection{DailyKOS}
+This is a dataset 
+
 
 \section{Discussion}
 In this paper, we described the details of training of an LDA model for document topic modeling. We saw that for an unsupervised learning problem such as topic discovery, LDA can be used to model the documents and its topics. We used Gibbs sampling to train a collapsed version of the model. For two datasets, we saw that our model can predict meaningful topics and discover an sparse representation of documents in topic space. For classic400 dataset, the model predicted the true topic for each document with more that 97\% accuracy.
 
-One of the challenges when doing unsupervised training for model, is to determine the stopping criteria. This is the point in training where the model starts to over-fit the training data. We performed experiments with the well known.
+One of the challenges when doing unsupervised training for model, is to determine the stopping criteria. This is the point in training where the model starts to over-fit the training data. We saw that Harmonic mean can't provide much information about the convergence because it converges very fast. In our experiments, we found that Gibbs sampling in the first few epochs do not provide any structure on the topic distribution in documents. Therefore, we let the Gibbs sampling run for 500 epochs.  
 
 \begin{thebibliography}{9}
 \bibitem{fastlda}

@@ -20,7 +20,7 @@ for i in range(3,data.shape[0]):
 
 idx = np.arange(ndocs)
 np.random.shuffle(idx)
-X = X[idx[:1000],:]
+X = X[idx[:500],:]
 
 wordlist = []
 f = open("../Data/vocab.kos.txt","rt")
@@ -30,7 +30,7 @@ f.close()
 wordlist = np.asarray(wordlist)
 
 ntopics    = 4
-nIter      = 100
+nIter      = 200
 alpha      = 0.01
 beta       = .2
 train      = True
