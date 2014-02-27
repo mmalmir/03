@@ -29,11 +29,11 @@
 \newcommand{\argmin}{\arg\!\max}
 \begin{document}
 
-\title{Parameter estimation for text analysis\\  Learning Algorithms, Project 3}
+\title{Latent Dirichlet Allocation for Document Topic Discovery\\  Learning Algorithms, Project 3}
 \author{Mohsen Malmir, Erfan Sayyari}
 \maketitle
 \section{Abstract}
-
+In this paper, a popular generative model called Latent Dirichlet Allocation (LDA) is used to discover the underlying topics of  a set of documents. Learning topics in documents is an unsupervised learning problem which exploits the frequency of words in documents. Gibbs sampling is used with Harmonic mean as a measure of goodness-of-fit to train the LDA model. We show the results of training the model using classic400 and DailyKOS blog datasets. In both cases, the discovered topics and the distribution of topics in each document are represented. We also show that our model can predict the true label for topics for documents of classic400 dataset with more that 97\% accuracy.
 
 \section{Introduction}
 
@@ -108,7 +108,7 @@ The experiments on the model described above was done using two datasets: classi
 \label{tableDatasetStats}
 \end{table}
 
-\subsection{Analyzing topic models}
+\subsection{Measures for Goodness-of-Fit}
 \subsubsection{Perplexity}
 A very general criterion to analyze overfitting of a clustering model is to use perplexity (????). The reciprocal geometric mean of the likelihood of testing data given the trained model $M={\{\Theta,\Phi\}}$ is defined as perplexity. The lower perplexity value shows that the model could fit the testing data better. Mathematically we could define it as:
 \begin{equation}
@@ -144,10 +144,10 @@ For classic400 dataset, we
 \begin{tabular}{| c | p{12cm} |}
 \hline
 \textbf{Topic}& \textbf{Top 20 Words}  \\ \hline
-\textbf{1}&boundary,layer,wing,mach,supersonic,wings,ratio,velocity,schlock, effects,surface,plate,solution,jet,lift,numbers,high,edges,speeds,head\\ \hline
-\textbf{2}&system,scientific,retrieval,research,language,science,journals, methods,systems,subject,library,request,classification,data,problems, field,development,considered,general,structure\\
+\textbf{1}&system,scientific,retrieval,research,language,science,journals, methods,systems,subject,problems,requests,library,classification,data, organization,general,development,publications,considered\\ \hline
+\textbf{2}&boundary,layer,wing,mach,supersonic,wings,velocity,ratio,shock, effects,surface,plate,lift,jet,numbers,solution,edge,high,speeds,heat\\
  \hline
-\textbf{3}&ventricular,fatty,left,nickel,cases,acids,aortic,blood,normal,glucose, spetal,acid,pulmonary,defect, visual,time,clinical,free,ffa\\
+\textbf{3}&patients,ventricular,fatty,left,nickel,acids,cases,aortic,blood,glucose, normal,septal,visual,acid,pulmonary,defect,time,clinical,ffa, regurgitation\\
  \hline
  
 \end{tabular}

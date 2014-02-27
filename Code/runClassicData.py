@@ -4,7 +4,6 @@ import copy
 import numpy as np
 import scipy.io as sio
 import matplotlib.pyplot as plt
-import matplotlib.pyplot as plt
 from ldaTopicModel import ldaTopicModel
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -19,9 +18,9 @@ wordFreq   = wordFreq.toarray()
 
 
 nIter      = 500
-alpha      = 0.1
-beta       = .2
-train      = True
+alpha      = 0.01
+beta       = 2.
+train      = False
 lda        = ldaTopicModel(n_topics = 3,alpha= alpha * np.ones(3),
                                         beta=beta*np.ones(nWords),
                                         nIter=nIter)

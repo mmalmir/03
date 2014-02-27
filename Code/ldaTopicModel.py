@@ -71,6 +71,7 @@ class ldaTopicModel:
                 cnt += 1
         converged = False
         print topicsInDoc
+        BETA = np.tile(self.beta,[self.nTopics,1])
         for iiii in range(self.nIter):
             print iiii
         #do one round of gibbs sampling
@@ -86,10 +87,17 @@ class ldaTopicModel:
                    #totalTopicsInDoc[d]                  -= 1
 #                    totalWordsInTopic[topicForWord[cnt]] -= 1
                    #totalWordsInTopic[topicForWord[d][w][ii]] -= 1
-                    prob = np.zeros(self.nTopics)
-                    for k in range(self.nTopics):
-                        prob[k] =  (wordsInTopic[k,w]+self.beta[w]) / np.sum(wordsInTopic[k,:]+self.beta)
-                        prob[k] *= (topicsInDoc[d,k]+self.alpha[k]) / np.sum(topicsInDoc[d,:]+self.alpha)
+
+
+#                    prob = np.zeros(self.nTopics)
+#                    for k in range(self.nTopics):
+#                        prob[k] =  (wordsInTopic[k,w]+self.beta[w]) / np.sum(wordsInTopic[k,:]+self.beta)
+#                        prob[k] *= (topicsInDoc[d,k]+self.alpha[k]) / np.sum(topicsInDoc[d,:]+self.alpha)
+
+                    prob = wordsInTopic[:,w]+self.beta[w]
+                    prob /= (wordsInTopic + BETA).sum(axis=1)
+                    prob *= (topicsInDoc[d,:]+self.alpha)
+                    prob /= topicsInDoc[d,:]+self.alpha
                         #prob[k]=(wordsInTopic[topicForWord[d][w][ii],w]+self.beta[w])*(topicsInDoc[d,z[d][w][ii]]+self.alpha[d])
 #                        prob[k] /= (totalTopicsInDoc[d]+self.alpha)*(totalWordsInTopic[k])
                     #prob[k]/= (topicsInDoc[d,z[d][w][ii]]+np.sum(self.alpha))*(totalWordsInTopic[topicForWord[d][w][ii]]+np.sum(self.beta))
