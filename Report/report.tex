@@ -73,25 +73,18 @@ where
 \end{align}
 is the extension of Factorial function to continuous variables.
 \subsection{ LDA Generative process}
-To better understand the LDA model, we can look at how documents are generated in this model. First, $\phi_k, k=1,\ldots,K$ are randomly drawn from $Dir(\beta)$. Then For document $m, m=1,\ldots,M$, $\theta_m$ is sampled from $Dir(\alpha)$. Then $n_m$ topics are randomly drawn from Multi$(\theta_m)$. Given $z_t$, the $t$th word is selected from $\phi_{z_t}$.
+To better understand the LDA model, we can look at how documents are generated in this model. First, $\phi_k, k=1,\ldots,K$ are randomly drawn from $Dir(\beta)$. Then For document $m, m=1,\ldots,M$, $\theta_m$ is sampled from $Dir(\alpha)$. Then $n_m$ topics are randomly drawn from Multi$(\theta_m)$. Given $z_t$, the $t$th word is selected from $\phi_{z_t}$. Remember that Gibbs sampling works by sampling from the posterior of variables, one variable at a time. 
 
 
-\subsection{Inference}
-Inference includes determining $\theta_m, \phi_k$ for $m=1,\ldots,M,\;\; k=1,\ldots,K$.
-
-
-\subsection{Training via Gibbs sampling}
-The training data are the words in all documents, and the prior distribution parameters $\alpha$, $\beta$, the number of topics $K$, number of documents $M$, length of each document $N_m$, and the length of vocabulary $V$ are assumed to be fixed and known.
-
-Moreover, we suppose that we know the $z$ value for every word except for word number $i$. We want to draw the value for $z_i$ based on the probability distribution of topics and words. We use the notation $\overline{w'}$ to mean $\bar{w}$ with word number $i$ removed, so $\bar{w}=\{w_i,\overline{w'}\}$. Similarly, we write $\bar{z}=\{z_i,\overline{z'}\}$, and we need to compute the probability of $z_i$ given $\overline{z'},\bar{w}$:
+Inference includes determining $\theta_m, \phi_k$ for $m=1,\ldots,M,\;\; k=1,\ldots,K$. Note that this is an unsupervised learning problem, where the training vectors are not accompanied by a target value. We propose a model, shown in figure \ref{figGM}, and we want to adapt the model parameters to the training data. A major drawback of the LDA topic model is that we cannot calculate the likelihood of the data analytically. In such situations, MCMC methods come to our help. Particularly, we use Gibbs sampling to infer the model parameters $\theta_m$ and $\phi_k$. First, note that we can integrate out $\theta$ and $\phi$ nodes of the LDA model. This is due to the fact that the distribution of $\alpha$ and $\theta$ are conjugate. Also, this is the case for $\beta$ and $\phi$. Since $w$ is observed, Gibbs sampling reduces to sampling $z_t$ nodes in the model. Given the current values for all other $z$ variables, which we call $Z_{-t}$, and all words $W$, we have
+\begin{align}
+p(z_t|Z_{-t},W)=\frac{p(Z,W)}{P(Z_{-t},W)}=\frac{p(W|Z)p(Z)}{p(w_t|Z_{-t})p(W_{-t}|Z_{-t})p(Z_{-t})}
+\end{align}
+In the lectures, it was shown that,
 \begin{equation}
-p(z_i|\overline{z'},\bar{w})=\frac{p(\bar{z},\bar{w})}{\overline{z'},\bar{w}}=\frac{p(\bar{w}|\bar{z})p(\bar{z})}{p(w_i|\overline{z'})p(\overline{w'}|\overline{z'})p(\overline{z'})}
+p(z_t=j|Z_{-t},W)\propto \frac{q'_{jw_t}+\beta_{w_t}}{\sum_{t'} q'_{jw_{t'}}+\beta_{t'}}\frac{n'_{mj}+\alpha_j}{\sum_k n'_{mk}+\alpha_k}.
 \end{equation}
-for $z_i=1$ to $z_i=K$. After simplifications we could write this probability as:
-\begin{equation}
-p(z_i=j|\overline{z'},\bar{w})\propto \frac{q'_{jw_j}+\beta_{w_j}}{\sum_t q'_{jt}+\beta_t}\frac{n'_{mj}+\alpha_j}{\sum_k n'_{mk}+\alpha_k}.
-\end{equation}
-where $q_{kt}$ is the number of times that word $t$ occurs with topic $k$ in the whole corpus, and $q'_{jt}$ is equal to $q_{jt}$ with one subtracted from the count for word $t$ with topic $j$. $\overline{n'}_{m}$ is $\overline{n}_m$ with one subtracted from the count for topic $z_i$, and $\overline{n}_m$ is the vector of topic counts $\langle n_{m1},\ldots,n_{mK} \rangle$ for document number $m$.
+where $m$ is the document to which $w_t$ belongs, $q'_{jw_{x}}$ is the number of times word $w_x$ appeared in topic $j$ and $n'_{mj}$ is the number of times topic $j$ was used in document $m$. Also $\alpha_x$ and $\beta_x$ refer the the $x$th element of vectors $\alpha$ and $\beta$ respectively.
 
 \section{Design of Experiments}
 
