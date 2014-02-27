@@ -20,6 +20,11 @@
 \usepackage{setspace}
 \usepackage[english]{babel}
 
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+
 \definecolor{darkblue}{rgb}{0.0,0.0,0.5}
 \newtheorem{Dfn}{Definition}
 \hypersetup{colorlinks,breaklinks,
@@ -136,8 +141,31 @@ Here, we adapt the same parameter values as \cite{fastlda}: $\alpha \in \{0.01,0
 
 
 \subsection{Classic400}
-For classic400 dataset, we 
+We train 4 models on classic400 dataset using prior values mentioned before. Table \ref{tableClssicRecognition} shows the recognition rate for predicting the correct topic for documents in this dataset. For each document, we pick the topic with maximum probability as predicted topic for that document. Then all mappings from the predicted topics to the real topics are investigated. The results shown in table \ref{tableClassicRecognition} represent the best results found on this mapping. These rates indicate that the proposed model fits the data very well.
 
+One should also note the effect of hyper parameters on recognition rates. Among four different values, the model with the lowest recognition rate is the for which the prior parameters enforce the least amount of sparsity of documents and topics. In our experiments, we tried less sparse values, eg. $\beta=10$, but the recognition rates were not good and the resulting topic distributions were a mix of different topics with no observable preference for a specific topic.
+
+Measuring the goodness-of-fit for unsupervised models is a difficult task, however the structure of problem at hand can be exploited to investigate if the model has learned any meaningful pattern in the input data. For the present problem, we can observe if the set of words inside learned topics are semantically similar. Table \ref{tableTopWordsClassic} displays the top 20 words for each topic. It is interesting to look at this table, as the words in each row totally make sense. For example, the words in the third row represent the medical topic for documents.
+
+Figure \ref{figClassicDist} shows the distribution of documents based on $\theta_m$. In this figure, document $m$ is represented in 3D space with the normalized count vector $\theta_m$ obtained from Gibbs sampling. The best recognition rate is obtained from the model shown in left side of bottom row in figure \ref{figClassicDist}. One thing to note here is that this is the most sparse representation of documents among all 4 models. For all figures here, the documents are mainly concentrated at vertices of the 2D simplex. 
+
+
+\begin{table}[!]
+\begin{center}
+\begin{tabular}{| c | c |} 
+\hline
+\textbf{Hyper paramteres}& \textbf{Topic prediction rate}  \\ \hline
+
+$\alpha=0.01,\beta=2.0$ & $0.9725$ \\ \hline
+$\alpha=0.1,\beta=2.0$ &  $0.9375$ \\ \hline
+$\alpha=0.01,\beta=0.2$ & $0.97$ \\ \hline
+$\alpha=0.1,\beta=0.2$ & $0.96$ \\ \hline
+ 
+\end{tabular}
+\caption{Recognition rate for predicting the correct topic for each document for classic400 dataset.}
+\label{tableClssicRecognition}
+\end{center}
+\end{table}
 
 \begin{table}[!]
 \begin{center}
@@ -152,9 +180,43 @@ For classic400 dataset, we
  
 \end{tabular}
 \caption{}
-\label{table:2}
+\label{tableTopWordsClassic}
 \end{center}
 \end{table}
+
+
+
+
+\begin{figure}
+        \centering
+        \begin{subfigure}[b]{0.5\textwidth}
+                \includegraphics[width=\textwidth]{figs/classicalpha01beta2.png}
+                \caption{$\alpha=0.1,\;\beta=2.$}
+                \label{fig:gull}
+        \end{subfigure}%
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.5\textwidth}
+                \includegraphics[width=\textwidth]{figs/classicalpha01beta02.png}
+                \caption{$\alpha=0.1,\;\beta=0.2$}
+                \label{fig:tiger}
+        \end{subfigure}
+        
+        \begin{subfigure}[b]{0.5\textwidth}
+                \includegraphics[width=\textwidth]{figs/classicalpha001beta2.png}
+                \caption{$\alpha=0.01,\;\beta=2.$}
+                \label{fig:mouse}
+        \end{subfigure}%
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+          %(or a blank line to force the subfigure onto a new line)
+                  \begin{subfigure}[b]{0.5\textwidth}
+                \includegraphics[width=\textwidth]{figs/classicalpha001beta02.png}
+                \caption{$\alpha=0.01,\;\beta=0.2$}
+                \label{fig:mouse}
+        \end{subfigure}
+        \caption{Distribution of documents after training on classic400 dataset. Each document is represented by its distribution over 3 topics.}
+        \label{figClassicDist}
+\end{figure}
 
 
 \subsection{DailyKOS}

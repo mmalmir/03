@@ -62,9 +62,9 @@ topic1Idx = np.where(trueLabels==1)
 topic2Idx = np.where(trueLabels==2)
 topic3Idx = np.where(trueLabels==3)
 
-ax.scatter(theta[topic1Idx,0], theta[topic1Idx,1], theta[topic1Idx,2], c='r',label='True label=1')
-ax.scatter(theta[topic2Idx,0], theta[topic2Idx,1], theta[topic2Idx,2], c='g',label='True label=2')
-ax.scatter(theta[topic3Idx,0], theta[topic3Idx,1], theta[topic3Idx,2], c='b',label='True label=3')
+ax.scatter(theta[topic1Idx,0], theta[topic1Idx,1], theta[topic1Idx,2], c='r',label='True label=1',s=200)
+ax.scatter(theta[topic2Idx,0], theta[topic2Idx,1], theta[topic2Idx,2], c='g',label='True label=2',s=200)
+ax.scatter(theta[topic3Idx,0], theta[topic3Idx,1], theta[topic3Idx,2], c='b',label='True label=3',s=200)
 
 handles, labels = ax.get_legend_handles_labels()
 ax.legend()
@@ -76,7 +76,7 @@ ax.set_xlabel("Topic 1")
 ax.set_ylabel("Topic 2")
 ax.set_zlabel("Topic 3")
 
-#plt.show()
+plt.show()
 
 
 #calculate the percent correct

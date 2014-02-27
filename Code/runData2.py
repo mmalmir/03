@@ -26,7 +26,7 @@ f.close()
 wordlist = np.asarray(wordlist)
 
 ntopics    = 10
-nIter      = 500
+nIter      = 100
 alpha      = 0.1
 beta       = .2
 train      = True
@@ -44,48 +44,48 @@ if train:
 
 #
 ############# TO TEST, UNCOMMENT
-#f = open(fname,"rb")
-#lda = pickle.load(f)
-#f.close()
-#
-#nwrd = 20
-#idx = np.argsort(-lda.wordsInTopic)
-#for i in range(ntopics):
-#    print "topic %d:"%i
-#    print wordlist[idx[0,:nwrd]],"\n"
-#
-#print "visualizing..."
-#
+f = open(fname,"rb")
+lda = pickle.load(f)
+f.close()
+
+nwrd = 20
+idx = np.argsort(-lda.wordsInTopic)
+for i in range(ntopics):
+    print "topic %d:"%i
+    print wordlist[idx[i,:nwrd]],"\n"
+
+print "visualizing..."
+print lda.meanHarmonic
 #theta = lda.topicsInDoc
 #theta = theta / np.tile(theta.sum(axis=1).reshape([-1,1]),[1,ntopics])
+
+
+#seed = np.random.RandomState(seed=3)
+#mds = manifold.MDS(n_components=3, max_iter=30, eps=1e-9, random_state=seed)
+#pos = mds.fit(theta).embedding_
 #
-#
-##seed = np.random.RandomState(seed=3)
-##mds = manifold.MDS(n_components=3, max_iter=30, eps=1e-9, random_state=seed)
-##pos = mds.fit(theta).embedding_
-##
-##nmds = manifold.MDS(n_components=3, metric=False, max_iter=30, eps=1e-12,
-##                    random_state=seed, n_jobs=1,n_init=1)
-##theta = nmds.fit_transform(theta, init=pos)
-#
+#nmds = manifold.MDS(n_components=3, metric=False, max_iter=30, eps=1e-12,
+#                    random_state=seed, n_jobs=1,n_init=1)
+#theta = nmds.fit_transform(theta, init=pos)
+
 #theta = PCA(n_components=3).fit_transform(theta)
 #theta = theta / np.tile(theta.sum(axis=1).reshape([-1,1]),[1,3])
 #
 #fig = plt.figure()
 #ax = fig.add_subplot(111, projection='3d')
 #ax.scatter(theta[:,0], theta[:,1], theta[:,2], c='r',label='True label=1')
-#
-##handles, labels = ax.get_legend_handles_labels()
-##ax.legend()
-#
-##ax.legend([h1,h2,h3], ["True label=1","True label=2","True label=3"])
-#
-#
+
+#handles, labels = ax.get_legend_handles_labels()
+#ax.legend()
+
+#ax.legend([h1,h2,h3], ["True label=1","True label=2","True label=3"])
+
+
 #ax.set_xlabel("Topic 1")
 #ax.set_ylabel("Topic 2")
 #ax.set_zlabel("Topic 3")
 #
 #plt.show()
-#
+
 
 #calculate the percent correct

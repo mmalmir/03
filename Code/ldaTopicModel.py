@@ -72,6 +72,7 @@ class ldaTopicModel:
         converged = False
         print topicsInDoc
         BETA = np.tile(self.beta,[self.nTopics,1])
+        self.meanHarmonic = []
         for iiii in range(self.nIter):
             print iiii
         #do one round of gibbs sampling
@@ -122,10 +123,10 @@ class ldaTopicModel:
                     cnt += 1
             #check for convergence
             print topicsInDoc
-        a=np.sum(theta,axis=0)
-        a /= self.nTopics
-        a **= -1
-        self.meanHarmonic = np.sum(a)
+            a=np.sum(theta,axis=0)
+            a /= self.nTopics
+            a **= -1
+            self.meanHarmonic.append(np.sum(a))
 #        print wordsInTopic
         self.topicsInDoc  = topicsInDoc
         self.wordsInTopic = wordsInTopic
