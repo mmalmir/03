@@ -26,7 +26,7 @@ f.close()
 wordlist = np.asarray(wordlist)
 
 ntopics    = 10
-nIter      = 100
+nIter      = 200
 alpha      = 0.1
 beta       = .2
 train      = True
@@ -35,11 +35,6 @@ lda        = ldaTopicModel(n_topics = ntopics,alpha= alpha * np.ones(ntopics),
                                         nIter=nIter)
 
 fname = "uci_alpha%0.3f_beta%0.3f_iter%d.pickle"%(alpha,beta,nIter)
-
-f = open(fname,"rb")
-lda = pickle.load(f)
-f.close()
-
 
 if train:
     lda.fit(X)

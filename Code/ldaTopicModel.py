@@ -56,9 +56,7 @@ class ldaTopicModel:
             for ii in range(int(f)):
                 z_m_n = np.random.multinomial(1,unif )
                 z_m_n = np.where(z_m_n==1)[0]
-#                print z_m_n
                 wordsInTopic[z_m_n,w]    += 1
-               #wordsInTopic[z[d][w][ii],w]] +=1
                 topicForWord[cnt]        = z_m_n
                 topicsInDoc[d,z_m_n]     += 1 #topic for document d
                 cnt += 1
