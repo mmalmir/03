@@ -110,30 +110,27 @@ In each epoch we update the topic for all words by sampling from (\ref{eqZLikeli
 \subsection{Details of implementation}
 \begin{algorithm}[h!]
 \# initialization\;
- zero all count variables, $n_{m,k}$, $n_m$, $q_k^{(t)}$, $q_k$ \\
+ zero all count variables, $n_{m,k}$, $n_m$, $q_{kw_t}$, $q_k$ \\
 \For{all documents  $m\in{[1,M]}$}{
-\For{all words $n \in{[1,N_m]}$ in document $m$}{
- 	sample topic index $z_{m,n}=k\sim{Mult(\frac{1}{K})}$\\
-	 increment document-topic count: $n_m^{(k)+1}$\\
+\For{all words $w_t \in{[1,N_m]}$ in document $m$}{
+ 	sample topic index $z_{m,t}=k\sim{Mult(\frac{1}{K})}$\\
+	 increment document-topic count: $n_{mk}+1$\\
 	 increment document-topic sum: $n_m+1$\\
-	 increment topic-term count: $q_k^{(t)}+1$\\
+	 increment topic-term count: $q_{kw_t}+1$\\
  	increment topic-term sum: $q_k+1$\\
 }
 }
 \#Gibbs sampling\;
 \While{not converged}{
 	\For{all documents  $m\in{[1,M]}$}{
-		\For{all words $n \in{[1,N_m]}$ in document $m$}{
-\#for the current assignment of $k$ to a term $t$ for word $w_{m,n}$:\\
-decrement counts and sums: $n_m^{(k)}-1,n_m-1,q_k^{(t)}-1,q_k-1$\\
-\#multinomial sampling acc. to Equation 7:\\
+		\For{all words $w_t \in{[1,N_m]}$ in document $m$}{
+decrement counts and sums: $n_{mk}-1,n_m-1,q_{kw_t}-1,q_k-1$\\
 sample topic index $\overline{k}\sim{p(z_i|,Z_{-i},W)}$\\
-\#use the new assignment of $z_{m,n}$ to the term $t$ for word $w_{m,n}$ to:\\
-increment counts and sums: $n_m^{(k)}+1,n_m+1,q_k^{(t)}+1,q_k+1$\\
+increment counts and sums: $n_{mk}+1,n_m+1,q_{kw_t}+1,q_k+1$\\
 	}
 		}
 \#check convergence and return multinomial parameters;\ \\
-	\If{converged and $L$ iterations}{
+	\If{$L$ iterations}{
 return parameter set $\Phi$ according to Equation 8\\
 return parameter set $\Theta$ according to Equation 9\\
 	}
@@ -143,15 +140,10 @@ return parameter set $\Theta$ according to Equation 9\\
 \label{algorithm}
 \end{algorithm}
 
-Algorithm~\ref{algorithm} describes a pseudocode that represents our implementation. Firstly, we initialize 4 different vectors that count number of each topic $k$ in document $m$ ($n_m^{(k)}$ with size $K\times M$. $K$ is the number of topics and $M$ is the number of documents.), total number of topics in document number $m$ ($n_m$ with length M, total number of documents), number of topics associated with term $t$ ($q_k^{(t)}$ with size $K\times V$, where $K$ is the total number of topics and $V$ is dictionary size), and the total occurrence of topic $k$ in the whole corpus ($q_k$ with length $K$, number of topics). Afterwards, we associate randomly selected topic indexes for each word in corpus according to $Mult(\frac{1}{K})$, where $Mult$ shows multinomial distribution. 
-
-After initialization, we start Gibbs sampling. In order to assure convergence we set the number of iterations to be large enough. We consider different number of iterations, and for dataset Classic400 in order to give the best accuracy based on the maximum probable topic of each document, number of iterations equal to 500 is the best. 
-
-In each epoch, we consider one document (say $m$) and word $n$ in this topic. We discard it from the corpus, and decrement the associated counts. Then we sample a topic from the multinomial distribution according to the the posterior probability of $p(z_i|Z_{-i},W)$, where $Z_{-i}$ indicates that the whole set of topic labels except topic label number $i$, and $W$ indicates the total set of words. Then we use the new assignment of $z_{m,n}$ to term $t$ for word $w_{m,n}$ to update associated counts ( $n_m^{(k)}+1,n_m+1,q_k^{(t)}+1,q_k+1$). 
-
-After convergence according to large number of iteration, we return the parameter sets $\Phi$ and $\Theta$ according to Equation 8 and Equation 9.
+Algorithm~\ref{algorithm} describes the pseudocode for our implementation. In the above, $n_{mk}$ counts the number of words topic $k$ appeared in document $m$ and $q_{kw_t}$ represents the number of times word $w_t$ assigned to topic $k$. $K$ is the total number of topics and $M$ is the total number of documents. In order to make the algorithm faster, we keep track of the total number of topics in each document ($n_m$) and total number of words assigned to each topic ($q_k$). Note that in (7), $q_k = \sum_{t'} q'_{jw_{t'}} + \beta_{t'}$, and $n_m = \sum_k n'_{mk}+\alpha_k$. By updating these values, the moms inner instruction in our algorithm (line 17) can be evaluated faster. After convergence, we calculate the model parameters $\Phi$ and $\Theta$ using (8) and (9).
 
 
+To evaluate convergence, we first calculated Harmonic mean (which requires calculation of (9) in each iteration of Gibbs sampling). However, we found it not useful, since its value converged after the first few epochs. Because of the nature of unsupervised learning, it is hard to find a reliable measure for convergence. Therefore we trained the model with number of epochs ranging from 10 to 500 and found that the largest number of iterations gives the best results in terms of recognition for true labels in classic400 dataset. Therefore we use 500 number of epochs as the only stopping critertia.
 \section{Design of Experiments}
 
 \subsection{Dataset Selection}
