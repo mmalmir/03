@@ -86,6 +86,24 @@ p(z_t=j|Z_{-t},W)\propto \frac{q'_{jw_t}+\beta_{w_t}}{\sum_{t'} q'_{jw_{t'}}+\be
 \end{equation}
 where $m$ is the document to which $w_t$ belongs, $q'_{jw_{x}}$ is the number of times word $w_x$ appeared in topic $j$ and $n'_{mj}$ is the number of times topic $j$ was used in document $m$. Also $\alpha_x$ and $\beta_x$ refer the the $x$th element of vectors $\alpha$ and $\beta$ respectively.
 
+In each epoch, we use all of the words in corpus to update topic of that word, and to update probability of $p(z_i=j|\overline{z'},\bar{w})$. So, for each position, Equation 10 is calculated for different topics. Evaluating this probability for each topic (say $j$) requires constant time. Therefor, time complexity of each epoch of Gibbs sampling is $O(NK)$, where $N$ is the total number of words in corpus and $K$ is the number of topics.
+
+\subsection{Multinomial parameters}
+The final step is to find multinomial parameter sets $\underline{\Theta}$ and $\underline{\Phi}$. According to their meaning we could say that:
+\begin{equation}
+p(\overline{\theta_m}|\bar{w},\bar{z},\alpha)=Dir(\overline{\theta_m}|\overline{n}_m+\bar{alpha})
+\end{equation}
+\begin{equation}
+p(equation{\phi_k}|\bar{w},\bar{z},\alpha)=Dir(\overline{\phi_k}|\overline{q}_k+\bar{beta})
+\end{equation}
+where $\overline{n_m}$ is the vector of topic observation counts for document m and $\overline{n_k}$ is the vector of term observation counts for topic k. So we will have:
+\begin{equation}
+\phi_{k,t}=\frac{q_k^{(t)}+\beta_t}{\sum_{t=1}^V q_k^{t}+\beta_t},
+\end{equation}
+\begin{equation}
+\theta_{m,k}=\frac{n_m^{(k)}+\alpha_k}{\sum_{k=1}^K n_m^{k}+\alpha_k}.
+\end{equation}
+
 \section{Design of Experiments}
 
 \subsection{Dataset Selection}
